@@ -613,6 +613,7 @@
       </div>
     </div>
   </div>
+
   <!-- ========================================
      PROMOTIONAL CAROUSEL SECTION
      Add this RIGHT ABOVE your highlights section
@@ -854,12 +855,33 @@
       </div>
     </section>
 
-    <!-- Recent Winners (Left) - Separate -->
-    <div class="recent-winners-section">
-      <h2 class="winners-title">💰 Recent Big Wins</h2>
-      <div class="winners-feed" id="winnersFeed"></div>
-      <button class="view-all-winners-btn">View All Winners →</button>
-    </div>
+
+    <!-- ✅ WINNERS SECTIONS CONTAINER (Two Columns) -->
+    <section class="winners-sections-container">
+      <div class="winners-grid">
+
+        <!-- LEFT SIDE: Recent Big Wins -->
+        <div class="recent-winners-section">
+          <h2 class="winners-title">💰 Recent Big Wins</h2>
+          <div class="winners-feed" id="winnersFeed">
+            <!-- 4 rotating winners will render here -->
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE: Weekly Winners -->
+        <div class="weekly-winners-section">
+          <h2 class="winners-title">🏆 Weekly Winners</h2>
+          <div class="weekly-winners-list" id="weeklyWinnersList">
+            <!-- Top 5 weekly winners will render here -->
+          </div>
+          <div class="winners-footer">
+            <span class="winners-reset-info">Resets every Monday</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
 
     <!-- Winning Streak (Right) - Separate with MORE content -->
     <div class="bet-streak-widget">
@@ -1177,188 +1199,28 @@
         </div>
       </section>
 
-      <!-- Live Events Section -->
-      <section class="live-events-section">
+
+
+
+
+      <!-- Live Matches Container -->
+      <!-- ✅ UPDATED HOME PAGE LIVE SECTION -->
+      <section class="live-events-section home-live-preview">
         <div class="section-header">
           <div class="section-title">
             <span class="live-indicator">●</span>
-            <h2>Live Matches</h2>
-            <span class="live-count">230 Live Matches</span>
+            <h2>Live Now</h2>
           </div>
-          <button class="view-all-btn">
-            <span>View All</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" />
-            </svg>
-          </button>
         </div>
 
-
-
-        <!-- Live Matches Container -->
-        <div class="live-matches-container">
-          <!-- Soccer Matches -->
-          <div class="league-section">
-            <div class="league-header">
-              <span class="league-icon">🇪🇸</span>
-              <span class="league-name">Spain - LaLiga</span>
-              <button class="favorite-btn">⭐</button>
-            </div>
-
-            <!-- Single Live Match Card -->
-            <div class="live-match-card">
-              <!-- Match Info Section -->
-              <div class="match-info-section">
-                <div class="match-time-display">
-                  <div class="live-time">69:36</div>
-                  <div class="live-indicator">●</div>
-                </div>
-
-                <div class="teams-display">
-                  <div class="team-row">
-                    <span class="team-name">Valencia CF</span>
-                    <span class="team-score">1</span>
-                  </div>
-                  <div class="team-row">
-                    <span class="team-name">Real Oviedo</span>
-                    <span class="team-score">0</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Market Selector & Odds Section -->
-              <div class="betting-section">
-                <!-- Market Tabs -->
-                <div class="market-selector-tabs">
-                  <button class="market-tab active" data-market="fulltime">
-                    <span>Fulltime Result</span>
-                  </button>
-                  <button class="market-tab" data-market="next-goal">
-                    <span>Next Goal</span>
-                  </button>
-                  <button class="market-tab" data-market="goals">
-                    <span>Match Goals</span>
-                  </button>
-                  <button class="market-tab" data-market="asian">
-                    <span>Asian Lines</span>
-                  </button>
-                </div>
-
-                <!-- Odds Display -->
-                <div class="odds-container">
-                  <!-- Fulltime Result -->
-                  <div class="odds-set active" data-odds="fulltime">
-                    <div class="odds-labels">
-                      <span>1</span>
-                      <span>X</span>
-                      <span>2</span>
-                    </div>
-                    <div class="odds-buttons">
-                      <button class="odds-btn" data-outcome="1" data-odd="1.19">1.19</button>
-                      <button class="odds-btn" data-outcome="X" data-odd="5.40">5.40</button>
-                      <button class="odds-btn" data-outcome="2" data-odd="29.00">29.00</button>
-                    </div>
-                  </div>
-
-                  <!-- Next Goal -->
-                  <div class="odds-set" data-odds="next-goal">
-                    <div class="odds-labels">
-                      <span>Valencia</span>
-                      <span>No Goal</span>
-                      <span>Oviedo</span>
-                    </div>
-                    <div class="odds-buttons">
-                      <button class="odds-btn" data-outcome="home-next" data-odd="1.65">1.65</button>
-                      <button class="odds-btn" data-outcome="no-goal" data-odd="3.20">3.20</button>
-                      <button class="odds-btn" data-outcome="away-next" data-odd="2.80">2.80</button>
-                    </div>
-                  </div>
-
-                  <!-- Match Goals -->
-                  <div class="odds-set" data-odds="goals">
-                    <div class="odds-labels">
-                      <span>Over 2.5</span>
-                      <span>Under 2.5</span>
-                      <span>BTTS</span>
-                    </div>
-                    <div class="odds-buttons">
-                      <button class="odds-btn" data-outcome="over" data-odd="1.75">1.75</button>
-                      <button class="odds-btn" data-outcome="under" data-odd="2.05">2.05</button>
-                      <button class="odds-btn" data-outcome="btts" data-odd="1.90">1.90</button>
-                    </div>
-                  </div>
-
-                  <!-- Asian Lines -->
-                  <div class="odds-set" data-odds="asian">
-                    <div class="odds-labels">
-                      <span>Valencia -0.5</span>
-                      <span>Draw</span>
-                      <span>Oviedo +0.5</span>
-                    </div>
-                    <div class="odds-buttons">
-                      <button class="odds-btn" data-outcome="valencia-handicap" data-odd="1.95">1.95</button>
-                      <button class="odds-btn" data-outcome="draw-handicap" data-odd="3.40">3.40</button>
-                      <button class="odds-btn" data-outcome="oviedo-handicap" data-odd="1.85">1.85</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Action Buttons -->
-              <div class="match-actions">
-                <button class="action-btn stats-btn" title="Statistics">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="currentColor" />
-                  </svg>
-                </button>
-
-                <button class="action-btn tv-btn" title="Watch Live">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2"
-                      fill="none" />
-                    <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" />
-                    <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2" />
-                  </svg>
-                </button>
-
-                <button class="action-btn more-btn" title="More Options">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="1" stroke="currentColor" stroke-width="2" fill="currentColor" />
-                    <circle cx="12" cy="5" r="1" stroke="currentColor" stroke-width="2" fill="currentColor" />
-                    <circle cx="12" cy="19" r="1" stroke="currentColor" stroke-width="2" fill="currentColor" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+        <!-- ✅ EMPTY CONTAINER - JavaScript will fill this -->
+        <div class="live-matches-container" id="homeLiveContainer">
+          <!-- Matches will appear here automatically -->
         </div>
       </section>
 
-      <!-- Live Stats Dashboard -->
-      <div class="live-stats-dashboard">
-        <h2 class="stats-title">📊 Live Platform Stats</h2>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon">👥</div>
-            <div class="stat-value" id="onlineUsers">12,847</div>
-            <div class="stat-label">Users Online</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-value" id="todayWinnings">€456,239</div>
-            <div class="stat-label">Winnings Today</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon">🔥</div>
-            <div class="stat-value" id="activeBets">8,592</div>
-            <div class="stat-label">Active Bets</div>
-          </div>
-        </div>
-      </div>
+      
 
       <!-- Modern Floating Bet Slip -->
       <div id="floatingBetSlip" class="floating-bet-slip">
@@ -1400,6 +1262,29 @@
             </div>
           </div>
 
+          <!-- ✅ ADD THIS: Restore Bets Button (shows when slip is empty) -->
+          <div class="restore-bets-section hidden" id="restoreBetsSection">
+            <div class="restore-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M3 21v-5h5" />
+              </svg>
+            </div>
+            <div class="restore-info">
+              <span class="restore-title">Your previous bet slip</span>
+              <span class="restore-count" id="restoreCount">0 selections</span>
+            </div>
+            <button class="restore-btn" id="restoreBetsBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+              Restore Bets
+            </button>
+          </div>
+
           <!-- Tabs -->
           <div class="bet-tabs">
             <button class="bet-tab active" data-tab="single">Single</button>
@@ -1418,10 +1303,10 @@
               <input type="number" class="stake-input" id="stake" value="0.00" step="0.01" min="0.5" max="99999">
             </div>
 
-            <!-- Potential Winnings -->
-            <div class="potential-winnings">
-              <span>Potential winnings</span>
-              <strong id="potentialWin">0.00 лв.</strong>
+            <!-- Potential Winnings with Risk Colors -->
+            <div class="potential-win-row" id="potentialWinRow">
+              <span class="potential-label">Potential winnings</span>
+              <span class="potential-amount" id="potentialWin">0.00 лв.</span>
             </div>
 
             <!-- Place Bet Button -->
@@ -1462,6 +1347,7 @@
         <div id="authMessage" class="auth-message hidden"></div>
   </section> <!-- Close homeSection -->
 
+  
   <!-- ==================== ALL SPORTS PAGE ==================== -->
   <section id="allSportsPage" class="page-section">
     <div class="wrap">
@@ -1535,10 +1421,16 @@
         </div>
       </div>
 
+
+      <!-- ✅ ADD style="display: none;" -->
+      <div id="prematchContainer" class="live-matches-container" style="margin-top: 20px; display: none;">
+        <!-- Prematch events will render here -->
+      </div>
+
       <!-- Sports Grid -->
       <div class="all-sports-grid" id="allSportsGrid">
         <!-- Soccer (Featured) -->
-        <div class="all-sport-card featured" data-sport="soccer">
+        <div class="all-sport-card featured" data-sport="football">
           <span class="featured-badge">Popular</span>
           <span class="all-sport-icon">⚽</span>
           <span class="all-sport-name">Soccer</span>
@@ -1775,158 +1667,140 @@
 
   <section id="inplaySection" class="page-section">
     <div class="wrap">
-      <div class="wrap">
-        <div class="section-header" style="text-align: center; padding: 40px 0 20px;">
-          <h1
-            style="font-size: 32px; font-weight: 900; color: white; margin: 0 0 8px 0; display: flex; align-items: center; justify-content: center; gap: 12px;">
-            <span style="color: #10b981; font-size: 24px;">●</span>
-            Live In-Play Matches
-          </h1>
-          <p style="color: rgba(255, 255, 255, 0.6); margin: 0; font-size: 16px;">
-            Bet live on ongoing matches • Real-time odds • Live updates
-          </p>
+      <div class="section-header" style="text-align: center; padding: 40px 0 20px;">
+        <h1
+          style="font-size: 32px; font-weight: 900; color: white; margin: 0 0 8px 0; display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span style="color: #10b981; font-size: 24px;">●</span>
+          Live In-Play Matches
+        </h1>
+        <p style="color: rgba(255, 255, 255, 0.6); margin: 0; font-size: 16px;">
+          Bet live on ongoing matches • Real-time odds • Live updates
+        </p>
+      </div>
+
+      <!-- ✅ UPDATED IN PLAY PAGE LIVE SECTION -->
+      <section class="live-events-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="live-indicator">●</span>
+            <h2>Live Matches</h2>
+          </div>
         </div>
 
-        <!-- Live Events Section -->
-        <section class="live-events-section">
-          <div class="section-header">
-            <div class="section-title">
-              <span class="live-indicator">●</span>
-              <h2>Live Matches</h2>
-              <span class="live-count">230 Live Matches</span>
-            </div>
-            <button class="view-all-btn">
-              <span>View All</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  stroke-linejoin="round" />
-              </svg>
-            </button>
-          </div>
+        <!-- ✅ Sport Filter Tabs -->
+        <div class="live-sports-filter">
 
-          <!-- Live Matches Container -->
-          <div class="live-matches-container">
-            <!-- Soccer Matches -->
-            <div class="league-section">
-              <div class="league-header">
-                <span class="league-icon">🇪🇸</span>
-                <span class="league-name">Spain - LaLiga</span>
-                <button class="favorite-btn">⭐</button>
-              </div>
 
-              <!-- Single Live Match Card -->
-              <div class="live-match-card">
-                <!-- Match Info Section -->
-                <div class="match-info-section">
-                  <div class="match-time-display">
-                    <div class="live-time">69:36</div>
-                    <div class="live-indicator">●</div>
-                  </div>
+          <button class="live-sport-tab active" data-sport="football">
+            <span class="tab-icon">⚽</span>
+            <span class="tab-label">Football</span>
+            <span class="tab-count">87</span>
+          </button>
 
-                  <div class="teams-display">
-                    <div class="team-row">
-                      <span class="team-name">Valencia CF</span>
-                      <span class="team-score">1</span>
-                    </div>
-                    <div class="team-row">
-                      <span class="team-name">Real Oviedo</span>
-                      <span class="team-score">0</span>
-                    </div>
-                  </div>
-                </div>
+          <button class="live-sport-tab" data-sport="basketball">
+            <span class="tab-icon">🏀</span>
+            <span class="tab-label">Basketball</span>
+            <span class="tab-count">42</span>
+          </button>
 
-                <!-- Market Selector & Odds Section -->
-                <div class="betting-section">
-                  <!-- Market Tabs -->
-                  <div class="market-selector-tabs">
-                    <button class="market-tab active" data-market="fulltime">
-                      <span>Fulltime Result</span>
-                    </button>
-                    <button class="market-tab" data-market="next-goal">
-                      <span>Next Goal</span>
-                    </button>
-                    <button class="market-tab" data-market="goals">
-                      <span>Match Goals</span>
-                    </button>
-                  </div>
+          <button class="live-sport-tab" data-sport="tennis">
+            <span class="tab-icon">🎾</span>
+            <span class="tab-label">Tennis</span>
+            <span class="tab-count">38</span>
+          </button>
 
-                  <!-- Odds Display -->
-                  <div class="odds-container">
-                    <!-- Fulltime Result -->
-                    <div class="odds-set active" data-odds="fulltime">
-                      <div class="odds-labels">
-                        <span>1</span>
-                        <span>X</span>
-                        <span>2</span>
-                      </div>
-                      <div class="odds-buttons">
-                        <button class="odds-btn" data-outcome="1" data-odd="1.19">1.19</button>
-                        <button class="odds-btn" data-outcome="X" data-odd="5.40">5.40</button>
-                        <button class="odds-btn" data-outcome="2" data-odd="29.00">29.00</button>
-                      </div>
-                    </div>
+          <button class="live-sport-tab" data-sport="ice-hockey">
+            <span class="tab-icon">🏒</span>
+            <span class="tab-label">Ice Hockey</span>
+            <span class="tab-count">24</span>
+          </button>
 
-                    <!-- Next Goal -->
-                    <div class="odds-set" data-odds="next-goal">
-                      <div class="odds-labels">
-                        <span>Valencia</span>
-                        <span>No Goal</span>
-                        <span>Oviedo</span>
-                      </div>
-                      <div class="odds-buttons">
-                        <button class="odds-btn" data-outcome="home-next" data-odd="1.65">1.65</button>
-                        <button class="odds-btn" data-outcome="no-goal" data-odd="3.20">3.20</button>
-                        <button class="odds-btn" data-outcome="away-next" data-odd="2.80">2.80</button>
-                      </div>
-                    </div>
+          <!-- ADD THESE NEW TABS -->
+          <button class="live-sport-tab" data-sport="table-tennis">
+            <span class="tab-icon">🏓</span>
+            <span class="tab-label">Table Tennis</span>
+            <span class="tab-count">5</span>
+          </button>
 
-                    <!-- Match Goals -->
-                    <div class="odds-set" data-odds="goals">
-                      <div class="odds-labels">
-                        <span>Over 2.5</span>
-                        <span>Under 2.5</span>
-                        <span>BTTS</span>
-                      </div>
-                      <div class="odds-buttons">
-                        <button class="odds-btn" data-outcome="over" data-odd="1.75">1.75</button>
-                        <button class="odds-btn" data-outcome="under" data-odd="2.05">2.05</button>
-                        <button class="odds-btn" data-outcome="btts" data-odd="1.90">1.90</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          <button class="live-sport-tab" data-sport="volleyball">
+            <span class="tab-icon">🏐</span>
+            <span class="tab-label">Volleyball</span>
+            <span class="tab-count">10</span>
+          </button>
 
-                <!-- Action Buttons -->
-                <div class="match-actions">
-                  <button class="action-btn stats-btn" title="Statistics">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="currentColor" />
-                    </svg>
-                  </button>
+          <button class="live-sport-tab" data-sport="handball">
+            <span class="tab-icon">🤾</span>
+            <span class="tab-label">Handball</span>
+            <span class="tab-count">8</span>
+          </button>
 
-                  <button class="action-btn tv-btn" title="Watch Live">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2"
-                        fill="none" />
-                      <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" />
-                      <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2" />
-                    </svg>
-                  </button>
+          <button class="live-sport-tab" data-sport="darts">
+            <span class="tab-icon">🎯</span>
+            <span class="tab-label">Darts</span>
+            <span class="tab-count">11</span>
+          </button>
 
-                  <button class="action-btn more-btn" title="More Options">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="1" stroke="currentColor" stroke-width="2" fill="currentColor" />
-                      <circle cx="12" cy="5" r="1" stroke="currentColor" stroke-width="2" fill="currentColor" />
-                      <circle cx="12" cy="19" r="1" stroke="currentColor" stroke-width="2" fill="currentColor" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+          <button class="live-sport-tab" data-sport="esports">
+            <span class="tab-icon">🎮</span>
+            <span class="tab-label">Esports</span>
+            <span class="tab-count">3</span>
+          </button>
+
+          <button class="live-sport-tab" data-sport="cricket">
+            <span class="tab-icon">🏏</span>
+            <span class="tab-label">Cricket</span>
+            <span class="tab-count">5</span>
+          </button>
+        </div>
+
+        <!-- ✅ EMPTY CONTAINER - JavaScript will fill this -->
+        <div class="live-matches-container" id="inplayLiveContainer">
+          <!-- Matches will appear here automatically -->
+        </div>
+      </section>
+    </div>
   </section>
+
+  <!-- Right Side Panel -->
+  <div id="matchDetailsPanel" class="match-panel" style="display: none;">
+    <div class="match-panel-header">
+      <button class="panel-close" onclick="closeMatchPanel()">✕</button>
+      <div class="panel-match-info">
+        <div class="panel-league" id="panelLeague"></div>
+        <div class="panel-teams">
+          <span id="panelTeam1"></span> <span id="panelScore1" class="panel-score"></span>
+        </div>
+        <div class="panel-teams">
+          <span id="panelTeam2"></span> <span id="panelScore2" class="panel-score"></span>
+        </div>
+        <div class="panel-time" id="panelTime"></div>
+      </div>
+    </div>
+
+    <div class="panel-tabs">
+      <button class="panel-tab active" onclick="switchPanelTab('stats')">Stats</button>
+      <button class="panel-tab" onclick="switchPanelTab('stream')">Stream</button>
+    </div>
+
+    <div class="panel-content">
+      <div id="panelStatsView" class="panel-view active">
+        <div id="panelStats"></div>
+      </div>
+
+      <div id="panelStreamView" class="panel-view">
+        <div class="stream-placeholder">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="3" width="20" height="14" rx="2" stroke="white" stroke-width="2" />
+            <polygon points="10,8 10,16 16,12" fill="white" />
+          </svg>
+          <p>Stream not available</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay backdrop -->
+  <div id="panelBackdrop" class="panel-backdrop" style="display: none;" onclick="closeMatchPanel()"></div>
 
   <!-- ==================== SOCIAL FEED SECTION ==================== -->
 
@@ -2066,12 +1940,6 @@
             <p class="hero-subtitle">Play the hottest casino games</p>
           </div>
         </div>
-        <button class="view-all-btn">
-          View All
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
 
       <!-- Casino Games Carousel -->
@@ -2337,6 +2205,35 @@
         </div>
   </section>
 
+  <!-- Live Stats Dashboard -->
+  <div class="live-stats-dashboard">
+    <div class="stats-header">
+      <h2 class="stats-title">Live Platform Stats</h2>
+      <p class="stats-subtitle">Real-time betting activity on the platform</p>
+    </div>
+
+    <!-- ✅ CORRECTED: Use original classes for Live Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value" id="onlineUsers">12,847</div>
+        <div class="stat-label">Users Online</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value" id="todayWinnings">€456,239</div>
+        <div class="stat-label">Winnings Today</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-value" id="activeBets">8,592</div>
+        <div class="stat-label">Active Bets</div>
+      </div>
+    </div>
+  </div>
+  <!-- ==================== FOOTER SECTION ==================== -->
   <!-- FOOTER -->
   <footer class="site-footer">
     <div class="footer-container">
