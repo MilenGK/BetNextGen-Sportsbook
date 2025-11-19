@@ -65,7 +65,7 @@ const weeklyWinnersData = [
 function renderWeeklyWinners() {
   const container = document.getElementById('weeklyWinnersList');
   if (!container) return;
-  
+
   container.innerHTML = weeklyWinnersData.map(winner => `
     <div class="weekly-winner-card">
       <div class="rank-badge rank-${winner.rank}">${winner.rank}</div>
@@ -93,16 +93,16 @@ function calculateCashOut(bet) {
   // Cash out offers 70-90% of potential win depending on time
   const timePassed = Date.now() - new Date(bet.timestamp).getTime();
   const minutesPassed = timePassed / 60000;
-  
+
   // Higher % if bet is winning, lower if it's been longer
   let cashOutPercentage = 0.85; // Base 85%
-  
+
   // Reduce by 1% every 10 minutes (max -15%)
   cashOutPercentage -= Math.min(0.15, (minutesPassed / 10) * 0.01);
-  
+
   // Minimum 70%
   cashOutPercentage = Math.max(0.70, cashOutPercentage);
-  
+
   const cashOutAmount = bet.potentialWin * cashOutPercentage;
   return parseFloat(cashOutAmount.toFixed(2));
 }
@@ -110,56 +110,56 @@ function calculateCashOut(bet) {
 function cashOutBet(betIndex) {
   const bet = userBets[betIndex];
   if (!bet || bet.status !== 'unsettled') return;
-  
+
   const cashOutAmount = calculateCashOut(bet);
-  
+
   // Confirm cash out
   if (!confirm(`Cash out for ${cashOutAmount.toFixed(2)} лв?\n\nYou staked ${bet.stake.toFixed(2)} лв\nPotential win: ${bet.potentialWin.toFixed(2)} лв`)) {
     return;
   }
-  
+
   // Calculate profit/loss
   const profit = cashOutAmount - bet.stake;
-  
+
   // Update balance
   const currentBalance = getWallet();
   setWallet(currentBalance + cashOutAmount);
-  
+
   // Update bet status
   bet.status = 'cashed-out';
   bet.cashOutAmount = cashOutAmount;
   bet.cashOutTime = new Date().toISOString();
   bet.result = `Cashed Out: ${cashOutAmount.toFixed(2)} лв`;
-  
+
   // Update stats
   userStats.totalBets++;
   userStats.totalProfit += profit;
   userStats.weeklyProfit += profit;
-  
+
   if (profit > 0) {
     userStats.totalWins++;
     userStats.currentStreak++;
     userStats.bestStreak = Math.max(userStats.bestStreak, userStats.currentStreak);
-    
+
     if (profit > userStats.biggestWin) {
       userStats.biggestWin = profit;
     }
-    
+
     showWinNotification(cashOutAmount, profit);
   } else {
     userStats.totalLosses++;
     userStats.currentStreak = 0;
   }
-  
+
   // Save everything
   localStorage.setItem('userBets', JSON.stringify(userBets));
   saveStats();
   updateLeaderboard(profit);
-  
+
   // Update UI
   renderMyBets();
   renderStatistics();
-  
+
   toast(`💰 Cashed out for ${cashOutAmount.toFixed(2)} лв`);
 }
 
@@ -670,7 +670,7 @@ function updateBetSlipTrigger() {
     trigger.classList.add('updated');
     setTimeout(() => trigger.classList.remove('updated'), 600);
 
-  } 
+  }
   // Case 2: No bets, but has saved backup
   else if (savedSlip) {
     try {
@@ -678,7 +678,7 @@ function updateBetSlipTrigger() {
       if (saved && saved.length > 0) {
         trigger.style.display = 'flex';
         trigger.classList.add('has-restore');
-        
+
         // Show restore indicator
         if (count) {
           count.textContent = saved.length;
@@ -688,17 +688,17 @@ function updateBetSlipTrigger() {
           total.textContent = '🔄'; // Restore icon
           total.style.fontSize = '16px';
         }
-        
+
         return;
       }
     } catch (error) {
       console.error('Error checking saved slip:', error);
     }
-    
+
     // If savedSlip is invalid, hide
     trigger.style.display = 'none';
     trigger.classList.remove('has-restore');
-  } 
+  }
   // Case 3: No bets and no backup
   else {
     trigger.style.display = 'none';
@@ -991,8 +991,8 @@ const LIVE_MATCHES_DATA = [
     odds: { '1': 1.55, 'X': 4.50, '2': 5.20 }
   },
   // ========================================
-// TABLE TENNIS
-// ========================================
+  // TABLE TENNIS
+  // ========================================
   {
     id: 'live-tt1',
     sport: 'table-tennis',
@@ -1433,19 +1433,19 @@ let oddsHistory = new Map(); // Track previous odds for comparison
 function getOddsChange(currentOdd) {
   // Smaller odds (favorites) change less, larger odds change more
   const volatility = currentOdd < 2.0 ? 0.05 : (currentOdd < 5.0 ? 0.10 : 0.20);
-  
+
   // 60% chance to go up, 40% chance to go down (slight upward bias)
   const direction = Math.random() > 0.4 ? 1 : -1;
-  
+
   // Random change within volatility range
   const change = (Math.random() * volatility) * direction;
-  
+
   // Calculate new odd
   let newOdd = currentOdd + change;
-  
+
   // Keep odds realistic (minimum 1.01, maximum 100.00)
   newOdd = Math.max(1.01, Math.min(100.00, newOdd));
-  
+
   return parseFloat(newOdd.toFixed(2));
 }
 
@@ -1454,11 +1454,11 @@ function updateDynamicOdds() {
   // Update MATCHES data
   MATCHES.forEach(match => {
     if (!match.odds) return;
-    
+
     Object.keys(match.odds).forEach(outcome => {
       const oldOdd = match.odds[outcome];
       const newOdd = getOddsChange(oldOdd);
-      
+
       // Store history for animation
       const key = `${match.id}-${outcome}`;
       oddsHistory.set(key, {
@@ -1466,30 +1466,30 @@ function updateDynamicOdds() {
         new: newOdd,
         direction: newOdd > oldOdd ? 'up' : 'down'
       });
-      
+
       match.odds[outcome] = newOdd;
     });
   });
-  
+
   // Update LIVE_MATCHES_DATA
   LIVE_MATCHES_DATA.forEach(match => {
     if (!match.odds) return;
-    
+
     Object.keys(match.odds).forEach(outcome => {
       const oldOdd = match.odds[outcome];
       const newOdd = getOddsChange(oldOdd);
-      
+
       const key = `${match.id}-${outcome}`;
       oddsHistory.set(key, {
         old: oldOdd,
         new: newOdd,
         direction: newOdd > oldOdd ? 'up' : 'down'
       });
-      
+
       match.odds[outcome] = newOdd;
     });
   });
-  
+
   // Update UI
   updateOddsUI();
 }
@@ -1500,45 +1500,45 @@ function updateOddsUI() {
     const matchId = btn.dataset.match;
     const outcome = btn.dataset.outcome;
     const key = `${matchId}-${outcome}`;
-    
+
     // Skip if in bet slip (odds are locked)
     const isInSlip = slip.some(s => s.matchId === matchId && s.outcome === outcome);
     if (isInSlip) {
       btn.classList.add('locked');
       return;
     }
-    
+
     const history = oddsHistory.get(key);
     if (!history) return;
-    
+
     // Update button value
     const valueEl = btn.querySelector('.val') || btn;
     const oldValue = valueEl.textContent;
     valueEl.textContent = formatOddDisplay(history.new);
-    
+
     // Update data attribute
     btn.dataset.odd = history.new;
-    
+
     // Add animation if odds changed
     if (history.old !== history.new) {
       btn.classList.remove('odds-up', 'odds-down');
-      
+
       // Add direction class
       setTimeout(() => {
         btn.classList.add(history.direction === 'up' ? 'odds-up' : 'odds-down');
-        
+
         // Add arrow indicator
         const indicator = document.createElement('span');
         indicator.className = `odds-change-indicator ${history.direction}`;
         indicator.textContent = history.direction === 'up' ? '↑' : '↓';
-        
+
         const valEl = btn.querySelector('.val') || btn;
         valEl.appendChild(indicator);
-        
+
         // Remove indicator after animation
         setTimeout(() => indicator.remove(), 2000);
       }, 10);
-      
+
       // Remove animation class
       setTimeout(() => {
         btn.classList.remove('odds-up', 'odds-down');
@@ -1552,17 +1552,17 @@ function startDynamicOdds() {
   if (oddsUpdateInterval) {
     clearInterval(oddsUpdateInterval);
   }
-  
+
   // Update odds at random intervals (3-8 seconds)
   function scheduleNextUpdate() {
     const delay = Math.random() * 5000 + 3000; // 3-8 seconds
-    
+
     oddsUpdateInterval = setTimeout(() => {
       updateDynamicOdds();
       scheduleNextUpdate(); // Schedule next update
     }, delay);
   }
-  
+
   scheduleNextUpdate();
   console.log('✅ Dynamic odds system started');
 }
@@ -1790,20 +1790,20 @@ function saveSlipBackup() {
 // Restore previous slip
 function restoreBets() {
   const savedSlip = localStorage.getItem(SAVED_SLIP_KEY);
-  
+
   if (!savedSlip) {
     toast('❌ No previous bets to restore');
     return;
   }
-  
+
   try {
     const restoredBets = JSON.parse(savedSlip);
-    
+
     if (!restoredBets || restoredBets.length === 0) {
       toast('❌ No bets found');
       return;
     }
-    
+
     // Restore the slip
     slip = [...restoredBets];
     saveSlip();
@@ -1813,12 +1813,12 @@ function restoreBets() {
     updateCollapsedBetSlip();
     updatePotentialWin();
     updateRestoreButton();
-    
+
     toast(`✅ Restored ${slip.length} bet${slip.length > 1 ? 's' : ''}!`);
-    
+
     // Clear the backup after restoring
     localStorage.removeItem(SAVED_SLIP_KEY);
-    
+
   } catch (error) {
     console.error('Error restoring bets:', error);
     toast('❌ Failed to restore bets');
@@ -1831,9 +1831,9 @@ function updateRestoreButton() {
   const restoreSection = document.getElementById('restoreBetsSection');
   const restoreCount = document.getElementById('restoreCount');
   const savedSlip = localStorage.getItem(SAVED_SLIP_KEY);
-  
+
   if (!restoreSection) return;
-  
+
   if (slip.length === 0 && savedSlip) {
     try {
       const saved = JSON.parse(savedSlip);
@@ -1842,17 +1842,17 @@ function updateRestoreButton() {
         if (restoreCount) {
           restoreCount.textContent = `${saved.length} selection${saved.length > 1 ? 's' : ''}`;
         }
-        
+
         // ✅ DON'T auto-open - just show collapsed state
         // User can click to open and see restore button
-        
+
         return;
       }
     } catch (error) {
       console.error('Error parsing saved slip:', error);
     }
   }
-  
+
   // Hide if slip is not empty or no saved data
   restoreSection.classList.add('hidden');
 }
@@ -1860,15 +1860,94 @@ function updateRestoreButton() {
 // Restore button click handler
 document.addEventListener('DOMContentLoaded', () => {
   const restoreBtn = document.getElementById('restoreBetsBtn');
-  
+
   if (restoreBtn) {
     restoreBtn.addEventListener('click', () => {
       restoreBets();
     });
   }
-  
+
   // Initial check
   updateRestoreButton();
+
+  // ============================================
+  // MATCH MARKETS EVENT LISTENERS
+  // ============================================
+
+  // Market tabs filtering
+  document.querySelectorAll('.market-tab').forEach(tab => {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+
+      const category = this.getAttribute('data-tab');
+
+      document.querySelectorAll('.market-card').forEach(card => {
+        if (category === 'all') {
+          card.style.display = 'block';
+        } else {
+          const cardCategories = card.getAttribute('data-category') || '';
+          card.style.display = cardCategories.includes(category) ? 'block' : 'none';
+        }
+      });
+    });
+  });
+
+ // Back button
+document.getElementById('backToMatches')?.addEventListener('click', () => {
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  document.getElementById('inplaySection').classList.add('active');
+  
+  // Show footer and stats again
+  document.querySelector('.site-footer').style.display = 'block';
+  document.querySelector('.live-stats-dashboard').style.display = 'block'; // ✅ ADD THIS
+  document.querySelector('.search-bar-section').style.display = 'block'; // ✅ ADD THIS TOO
+});
+
+  // Market option clicks
+  document.querySelectorAll('.market-option-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      this.classList.toggle('selected');
+      const optionName = this.querySelector('.option-name')?.textContent || '';
+      const optionValue = this.querySelector('.option-value')?.textContent || '';
+      toast(`Added ${optionName} @ ${optionValue}`);
+    });
+  });
+
+  // Click on live match to open markets
+  document.addEventListener('click', function (e) {
+    const matchCard = e.target.closest('.live-match-card');
+
+    if (matchCard && !e.target.closest('.odd-btn')) {
+      const leagueSection = matchCard.closest('.league-section');
+      const league = leagueSection?.querySelector('.league-name')?.textContent || 'Unknown League';
+      const teams = matchCard.querySelectorAll('.team-name');
+      const scores = matchCard.querySelectorAll('.team-score');
+      const time = matchCard.querySelector('.match-time')?.textContent || '0:00';
+      const odds = matchCard.querySelectorAll('.odd-btn');
+
+      const matchData = {
+        league: league,
+        teams: [
+          teams[0]?.textContent || 'Team 1',
+          teams[1]?.textContent || 'Team 2'
+        ],
+        score: [
+          scores[0]?.textContent || '0',
+          scores[1]?.textContent || '0'
+        ],
+        time: time,
+        odds: {
+          '1': odds[0]?.textContent || '1.50',
+          'X': odds[1]?.textContent || '3.50',
+          '2': odds[2]?.textContent || '4.00'
+        }
+      };
+
+      openMatchMarketsPage(matchData);
+    }
+  });
+
 });
 
 // 🔥 WRAP saveSlip to update bet slip visibility
@@ -2000,6 +2079,47 @@ document.addEventListener('click', (e) => {
     console.log('Wallet clicked - open deposit modal');
   }
 });
+
+// ============================================
+// MATCH MARKETS PAGE NAVIGATION
+// ============================================
+
+function openMatchMarketsPage(matchData) {
+  // Hide all pages
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  
+  // Show match markets page
+  const marketsPage = document.getElementById('matchMarketsPage');
+  
+  if (marketsPage) {
+    marketsPage.classList.add('active');
+  } else {
+    console.error('matchMarketsPage not found!');
+    return;
+  }
+  
+  // Hide footer and stats
+  document.querySelector('.site-footer').style.display = 'none';
+  document.querySelector('.live-stats-dashboard').style.display = 'none'; // ✅ ADD THIS
+  document.querySelector('.search-bar-section').style.display = 'none'; // ✅ ADD THIS TOO
+  
+  // Populate match info
+  document.getElementById('marketsLeagueBadge').textContent = matchData.league;
+  document.getElementById('marketsTeamName1').textContent = matchData.teams[0];
+  document.getElementById('marketsTeamName2').textContent = matchData.teams[1];
+  document.getElementById('marketsTeamScore1').textContent = matchData.score[0];
+  document.getElementById('marketsTeamScore2').textContent = matchData.score[1];
+  document.getElementById('marketsMatchTime').textContent = matchData.time;
+  
+  // Update odds
+  document.getElementById('ft-1').textContent = matchData.odds['1'];
+  document.getElementById('ft-x').textContent = matchData.odds['X'];
+  document.getElementById('ft-2').textContent = matchData.odds['2'];
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 
 // Sync wallet balance and color
 setInterval(() => {
@@ -2302,11 +2422,11 @@ document.addEventListener('click', (e) => {
       toast('Selection updated');
     } else {
       // ✅ ADD THIS: Lock odds when added to slip
-      slip.push({ 
-        matchId, 
-        teams: match.teams, 
-        outcome, 
-        odd, 
+      slip.push({
+        matchId,
+        teams: match.teams,
+        outcome,
+        odd,
         market,
         lockedOdd: odd // Store original odd
       });
@@ -2321,7 +2441,7 @@ document.addEventListener('click', (e) => {
     updatePotentialWin();
     return;
   }
-  
+
 
   // Handle remove buttons
   const removeBtn = e.target.closest('[data-remove]');
@@ -2422,7 +2542,7 @@ $$('#place')?.addEventListener('click', () => {
 
   userBets.push(newBet);
   localStorage.setItem('userBets', JSON.stringify(userBets));
-  
+
   // Clear slip after placing
   slip = [];
   saveSlip();
@@ -3607,11 +3727,11 @@ function updatePotentialWin() {
   // ✅ CALCULATE RISK LEVEL BASED ON MULTIPLIER
   const multiplier = stake > 0 ? potential / stake : 0;
   const riskRow = document.getElementById('potentialWinRow');
-  
+
   if (riskRow && stake > 0) {
     // Remove all existing risk classes
     riskRow.classList.remove('risk-low', 'risk-medium', 'risk-high', 'risk-extreme');
-    
+
     // Add appropriate risk class based on multiplier
     if (multiplier >= 100) {
       riskRow.classList.add('risk-extreme'); // 🔴 Red - Very high risk (100x+)
@@ -4005,7 +4125,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeDateFilter();
   setupDateFilters();
   setupSessionFilters();
-  
+
 
   // ==================== SPORT NAVIGATION BAR ====================
 
@@ -4114,19 +4234,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupSessionFilters() {
     const sessionButtons = document.querySelectorAll('.session-filter-btn');
-  
+
     sessionButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         // Remove active from all
         sessionButtons.forEach(b => b.classList.remove('active'));
-  
+
         // Add active to clicked
         btn.classList.add('active');
-  
+
         // Get selected session
         const selectedSession = btn.getAttribute('data-session');
         const sessionLabel = btn.querySelector('.session-label').textContent;
-  
+
         // ✅ FIX: If a sport is selected, update that sport's events
         if (currentSelectedSport) {
           const selectedDate = document.querySelector('.date-filter-btn.active')?.dataset.date || 'today';
@@ -4136,12 +4256,12 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('prematchContainer').style.display = 'none';
           document.getElementById('allSportsGrid').style.display = 'grid';
         }
-  
+
         toast(`Filtering: ${sessionLabel}`);
       });
     });
   }
-  
+
   function filterEventsBySession(session) {
     const selectedDate = document.querySelector('.date-filter-btn.active')?.dataset.date || 'today';
     renderPrematchEvents(selectedDate, session);
@@ -4153,19 +4273,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle date filter clicks
   function setupDateFilters() {
     const dateButtons = document.querySelectorAll('.date-filter-btn');
-  
+
     dateButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         // Remove active from all
         dateButtons.forEach(b => b.classList.remove('active'));
-        
+
         // Add active to clicked
         btn.classList.add('active');
-        
+
         // Get selected date
         const selectedDate = btn.getAttribute('data-date');
         const dateLabel = btn.querySelector('.date-label').textContent;
-        
+
         // ✅ FIX: If a sport is selected, update that sport's events
         if (currentSelectedSport) {
           const selectedSession = document.querySelector('.session-filter-btn.active')?.dataset.session || 'all';
@@ -4175,7 +4295,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('prematchContainer').style.display = 'none';
           document.getElementById('allSportsGrid').style.display = 'grid';
         }
-        
+
         toast(`Date changed to ${dateLabel}`);
       });
     });
@@ -4185,30 +4305,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==================== MODAL SPORT SELECTION ====================
 
   // Handle sport selection from modal
-// Handle sport selection from modal
-const allSportCards = document.querySelectorAll('.all-sport-card');
+  // Handle sport selection from modal
+  const allSportCards = document.querySelectorAll('.all-sport-card');
 
-allSportCards.forEach(card => {
-  card.addEventListener('click', () => {
-    const sport = card.getAttribute('data-sport');
+  allSportCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const sport = card.getAttribute('data-sport');
 
-    // ✅ Store selected sport
-    currentSelectedSport = sport;
+      // ✅ Store selected sport
+      currentSelectedSport = sport;
 
-    // Hide sports grid, show prematch container
-    document.getElementById('allSportsGrid').style.display = 'none';
-    document.getElementById('prematchContainer').style.display = 'block';
+      // Hide sports grid, show prematch container
+      document.getElementById('allSportsGrid').style.display = 'none';
+      document.getElementById('prematchContainer').style.display = 'block';
 
-    // Get selected date and session
-    const selectedDate = document.querySelector('.date-filter-btn.active')?.dataset.date || 'today';
-    const selectedSession = document.querySelector('.session-filter-btn.active')?.dataset.session || 'all';
+      // Get selected date and session
+      const selectedDate = document.querySelector('.date-filter-btn.active')?.dataset.date || 'today';
+      const selectedSession = document.querySelector('.session-filter-btn.active')?.dataset.session || 'all';
 
-    // Filter and render prematch events for this sport
-    renderPrematchEventsBySport(sport, selectedDate, selectedSession);
+      // Filter and render prematch events for this sport
+      renderPrematchEventsBySport(sport, selectedDate, selectedSession);
 
-    toast(`Showing ${card.querySelector('.all-sport-name').textContent} events`);
+      toast(`Showing ${card.querySelector('.all-sport-name').textContent} events`);
+    });
   });
-});
 
   // ==================== SPORTS NAVIGATION & MODAL ====================
   // (your existing sports code)
@@ -4986,8 +5106,8 @@ function renderMyBets() {
   // ✅ FIX: Use actual userBets index, not filtered array index
   document.getElementById('unsettled-content').innerHTML = unsettled.length
     ? unsettled.map(bet => {
-        const actualIndex = userBets.indexOf(bet); // ✅ Get real index
-        return `
+      const actualIndex = userBets.indexOf(bet); // ✅ Get real index
+      return `
           <div class="bet-card">
             <div class="bet-header">
               <div class="bet-type">${bet.type.toUpperCase()}</div>
@@ -5001,7 +5121,7 @@ function renderMyBets() {
             </div>
           </div>
         `;
-      }).join('')
+    }).join('')
     : '<p class="empty-state">No unsettled bets</p>';
 
   document.getElementById('settled-content').innerHTML = settled.length
@@ -5237,7 +5357,7 @@ function renderRecentWinners() {
 
   // ✅ Show first 4 winners
   const visibleWinners = bigWinsData.slice(0, maxVisible);
-  
+
   feed.innerHTML = visibleWinners.map(winner => `
     <div class="winner-card">
       <div class="winner-avatar">${winner.initial}</div>
@@ -5448,10 +5568,10 @@ function renderLiveMatches(containerId, matchesToShow, limitPerSport = null) {
   requestAnimationFrame(() => {
     container.querySelectorAll('.odds-buttons').forEach(oddsContainer => {
       const buttonCount = oddsContainer.querySelectorAll('.odds-btn').length;
-      
+
       if (buttonCount === 2) {
         oddsContainer.classList.add('two-way');
-        
+
         const labels = oddsContainer.previousElementSibling;
         if (labels?.classList.contains('odds-labels')) {
           labels.classList.add('two-way');
@@ -5460,7 +5580,7 @@ function renderLiveMatches(containerId, matchesToShow, limitPerSport = null) {
     });
   });
 
-  
+
   // Update count
   const countEl = document.getElementById(containerId === 'homeLiveContainer' ? 'homeLiveCount' : 'inplayLiveCount');
   if (countEl) {
@@ -5507,7 +5627,7 @@ document.addEventListener('click', (e) => {
 
 function createPrematchCard(match) {
   const isFootball = match.sport === 'football' || match.sport === 'ice-hockey';
-  
+
   let oddsHTML = '';
   if (isFootball) {
     oddsHTML = `
@@ -5565,7 +5685,7 @@ function renderPrematchEvents(selectedDate = 'today', selectedSession = 'all') {
 
   // Filter by date and session
   let filtered = PREMATCH_EVENTS.filter(m => m.date === selectedDate);
-  
+
   if (selectedSession !== 'all') {
     filtered = filtered.filter(m => m.sessionType === selectedSession);
   }
@@ -5604,10 +5724,10 @@ function renderPrematchEvents(selectedDate = 'today', selectedSession = 'all') {
 function renderPrematchEventsBySport(sport, selectedDate, selectedSession) {
   // Filter by sport first
   let filtered = PREMATCH_EVENTS.filter(m => m.sport === sport);
-  
+
   // Then by date
   filtered = filtered.filter(m => m.date === selectedDate);
-  
+
   // Then by session
   if (selectedSession !== 'all') {
     filtered = filtered.filter(m => m.sessionType === selectedSession);
@@ -5635,7 +5755,7 @@ function renderPrematchEventsBySport(sport, selectedDate, selectedSession) {
       ← Back to All Sports
     </button>
   `;
-  
+
   Object.values(groupedByLeague).forEach(leagueData => {
     html += `
       <div class="league-section pre-match-section" data-sport="${leagueData.sport}">
@@ -5655,14 +5775,14 @@ function renderPrematchEventsBySport(sport, selectedDate, selectedSession) {
 
   container.innerHTML = html;
 
- // Add back button handler
-document.getElementById('backToSportsBtn')?.addEventListener('click', () => {
-  // ✅ Clear selected sport
-  currentSelectedSport = null;
-  
-  document.getElementById('prematchContainer').style.display = 'none';
-  document.getElementById('allSportsGrid').style.display = 'grid';
-});
+  // Add back button handler
+  document.getElementById('backToSportsBtn')?.addEventListener('click', () => {
+    // ✅ Clear selected sport
+    currentSelectedSport = null;
+
+    document.getElementById('prematchContainer').style.display = 'none';
+    document.getElementById('allSportsGrid').style.display = 'grid';
+  });
 
   // Fix 2-way odds styling
   requestAnimationFrame(() => {
@@ -5777,12 +5897,12 @@ function createNotificationContainer() {
 
 function showWinNotification(amount, profit) {
   const container = createNotificationContainer();
-  
+
   const notification = document.createElement('div');
   notification.className = 'notification win';
-  
+
   const isBigWin = profit >= 100; // Big win if profit is 100+ лв
-  
+
   notification.innerHTML = `
     <button class="notification-close">×</button>
     <div class="notification-header">
@@ -5794,20 +5914,20 @@ function showWinNotification(amount, profit) {
       <div>Profit: <strong style="color: #10b981;">+${profit.toFixed(2)} лв</strong></div>
     </div>
   `;
-  
+
   container.appendChild(notification);
-  
+
   // Big win confetti
   if (isBigWin) {
     createConfetti();
   }
-  
+
   // Close button
   notification.querySelector('.notification-close').addEventListener('click', () => {
     notification.style.animation = 'slideInRight 0.3s ease-out reverse';
     setTimeout(() => notification.remove(), 300);
   });
-  
+
   // Auto remove after 5 seconds
   setTimeout(() => {
     if (notification.parentElement) {
@@ -5819,10 +5939,10 @@ function showWinNotification(amount, profit) {
 
 function showLossNotification(amount, loss) {
   const container = createNotificationContainer();
-  
+
   const notification = document.createElement('div');
   notification.className = 'notification loss';
-  
+
   notification.innerHTML = `
     <button class="notification-close">×</button>
     <div class="notification-header">
@@ -5834,14 +5954,14 @@ function showLossNotification(amount, loss) {
       <div>Better luck next time!</div>
     </div>
   `;
-  
+
   container.appendChild(notification);
-  
+
   notification.querySelector('.notification-close').addEventListener('click', () => {
     notification.style.animation = 'slideInRight 0.3s ease-out reverse';
     setTimeout(() => notification.remove(), 300);
   });
-  
+
   setTimeout(() => {
     if (notification.parentElement) {
       notification.style.animation = 'slideInRight 0.3s ease-out reverse';
@@ -5852,7 +5972,7 @@ function showLossNotification(amount, loss) {
 
 function createConfetti() {
   const colors = ['#ffd34d', '#10b981', '#3b82f6', '#ef4444', '#8b5cf6'];
-  
+
   for (let i = 0; i < 50; i++) {
     setTimeout(() => {
       const confetti = document.createElement('div');
@@ -5861,8 +5981,9 @@ function createConfetti() {
       confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
       confetti.style.animationDelay = Math.random() * 0.5 + 's';
       document.body.appendChild(confetti);
-      
+
       setTimeout(() => confetti.remove(), 3000);
     }, i * 30);
   }
 }
+

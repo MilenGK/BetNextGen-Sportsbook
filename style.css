@@ -4058,7 +4058,7 @@ mark.search-hit{
   }
   
   /* ============================================
-     ODDS BUTTONS
+     ODDS BUTTONS - SHARED WITH MARKET BUTTONS
      ============================================ */
   
   .odds-buttons {
@@ -4074,8 +4074,9 @@ mark.search-hit{
     margin: 0 auto;
   }
   
-  /* GREEN THEME BUTTONS */
-  .odds-btn {
+  /* ✅ GREEN THEME BUTTONS - SHARED STYLES */
+  .odds-btn,
+  .market-option-btn {
     padding: 0.6rem 0.5rem;
     background: linear-gradient(135deg, #134e4a 0%, #0f766e 100%);
     border: 2px solid #14b8a6;
@@ -4087,9 +4088,14 @@ mark.search-hit{
     transition: all 0.2s ease;
     text-align: center;
     box-shadow: 0 2px 6px rgba(20, 184, 166, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
   
-  .odds-btn:hover {
+  .odds-btn:hover,
+  .market-option-btn:hover {
     background: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%);
     border-color: #2dd4bf;
     color: #ffffff;
@@ -4097,16 +4103,24 @@ mark.search-hit{
     box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
   }
   
-  .odds-btn:active {
+  .odds-btn:active,
+  .market-option-btn:active {
     transform: translateY(0);
     box-shadow: 0 2px 6px rgba(20, 184, 166, 0.2);
   }
   
-  .odds-btn.selected {
+  .odds-btn.selected,
+  .market-option-btn.selected {
     background: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%);
     border-color: #5eead4;
     color: #0f172a;
     box-shadow: 0 4px 16px rgba(20, 184, 166, 0.5);
+  }
+  
+  /* Market button text styles */
+  .option-name,
+  .option-value {
+    color: inherit;
   }
   
   /* ============================================
@@ -4114,7 +4128,8 @@ mark.search-hit{
      ============================================ */
   
   @media (max-width: 768px) {
-    .odds-btn {
+    .odds-btn,
+    .market-option-btn {
       padding: 0.5rem 0.4rem;
       font-size: 0.85rem;
     }
@@ -8550,6 +8565,8 @@ body {
   padding: 60px 0 30px 0;
   margin: 0;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .footer-container {
@@ -8859,5 +8876,213 @@ body {
     padding: 10px 8px;
     min-height: 50px;
   }
+}
+
+/* ========== MATCH MARKETS PAGE ========== */
+/* ========== MATCH MARKETS PAGE ========== */
+#matchMarketsPage {
+  position: relative;
+  z-index: 100 !important;
+  background: #0a0f1a;
+  min-height: 100vh;
+  padding-top: 20px;
+  padding-bottom: 100px;
+}
+
+.back-to-matches-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+/* ========== MATCH MARKETS PAGE ========== */
+.back-to-matches-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.back-to-matches-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffd34d;
+  transform: translateX(-4px);
+}
+
+.match-markets-header {
+  text-align: center;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(255, 211, 77, 0.2);
+  margin-bottom: 30px;
+}
+
+.markets-league-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+.markets-match-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.markets-team-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 300px;
+}
+
+.markets-team-row:first-child {
+  justify-content: flex-end;
+}
+
+.markets-team-row:last-child {
+  justify-content: flex-start;
+  flex-direction: row-reverse;
+}
+
+.markets-team-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+.markets-team-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #ffd34d 0%, #ffb700 100%);
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 900;
+  border-radius: 12px;
+  padding: 0 12px;
+}
+
+.markets-vs-divider {
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+  padding: 0 12px;
+}
+
+.markets-match-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.live-dot {
+  font-size: 12px;
+  animation: pulse 2s infinite;
+}
+
+/* Market Tabs */
+.market-tabs-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0;
+  margin-bottom: 24px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.market-tab {
+  padding: 10px 20px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.market-tab:hover {
+  border-color: #ffd34d;
+  color: #ffd34d;
+}
+
+.market-tab.active {
+  background: linear-gradient(135deg, #ffd34d 0%, #ffb700 100%);
+  border-color: #ffd34d;
+  color: #0f172a;
+}
+
+/* Markets Grid */
+.markets-content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.market-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.market-card:hover {
+  border-color: rgba(255, 211, 77, 0.3);
+  transform: translateY(-2px);
+}
+
+.market-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffd34d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.market-card-options {
+  display: grid;
+  gap: 8px;
+}
+
+.market-card-options.two-way {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.market-card-options.three-way {
+  grid-template-columns: repeat(3, 1fr);
 }
 

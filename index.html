@@ -855,7 +855,6 @@
       </div>
     </section>
 
-
     <!-- ✅ WINNERS SECTIONS CONTAINER (Two Columns) -->
     <section class="winners-sections-container">
       <div class="winners-grid">
@@ -881,6 +880,264 @@
 
       </div>
     </section>
+
+    <!-- Highlights Section Header -->
+    <div class="highlights-header">
+      <div class="wrap">
+        <div class="section-hero">
+          <span class="fire-icon">🔥</span>
+          <div class="hero-text">
+            <h2 class="hero-title">Today's Highlights</h2>
+            <p class="hero-subtitle">Best betting opportunities of the day</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="event-carousel" id="featuredMatches" aria-label="Featured Matches">
+      <button class="carousel-btn left" aria-label="Scroll left">◀</button>
+
+      <div class="carousel-track" id="carouselTrack">
+        <!-- JS injects .event-card elements here -->
+      </div>
+
+      <button class="carousel-btn right" aria-label="Scroll right">▶</button>
+    </div>
+
+    <!-- Sports Navigation Bar -->
+    <!-- Place this AFTER "Today's Highlights" carousel and BEFORE "Live Matches" section -->
+
+    <section class="sports-navigation-section">
+      <div class="wrap">
+        <div class="sports-nav-header">
+          <h3 class="sports-nav-title">Browse Sports</h3>
+          <button class="show-all-sports-btn" id="showAllSportsBtn">
+            Show All
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="sports-nav-scroll">
+          <!-- American Football -->
+          <button class="sport-nav-item" data-sport="american-football">
+            <span class="sport-icon">🏈</span>
+            <span class="sport-name">American Football</span>
+          </button>
+
+          <!-- Australian Rules -->
+          <button class="sport-nav-item" data-sport="australian-rules">
+            <span class="sport-icon">🏉</span>
+            <span class="sport-name">Australian Rules</span>
+          </button>
+
+          <!-- Baseball -->
+          <button class="sport-nav-item" data-sport="baseball">
+            <span class="sport-icon">⚾</span>
+            <span class="sport-name">Baseball</span>
+          </button>
+
+          <!-- Basketball -->
+          <button class="sport-nav-item" data-sport="basketball">
+            <span class="sport-icon">🏀</span>
+            <span class="sport-name">Basketball</span>
+          </button>
+
+          <!-- Boxing -->
+          <button class="sport-nav-item" data-sport="boxing">
+            <span class="sport-icon">🥊</span>
+            <span class="sport-name">Boxing</span>
+          </button>
+
+          <!-- Cricket -->
+          <button class="sport-nav-item" data-sport="cricket">
+            <span class="sport-icon">🏏</span>
+            <span class="sport-name">Cricket</span>
+          </button>
+
+          <!-- Cycling -->
+          <button class="sport-nav-item" data-sport="cycling">
+            <span class="sport-icon">🚴</span>
+            <span class="sport-name">Cycling</span>
+          </button>
+
+          <!-- Darts -->
+          <button class="sport-nav-item" data-sport="darts">
+            <span class="sport-icon">🎯</span>
+            <span class="sport-name">Darts</span>
+          </button>
+
+          <!-- Esports -->
+          <button class="sport-nav-item" data-sport="esports">
+            <span class="sport-icon">🎮</span>
+            <span class="sport-name">Esports</span>
+          </button>
+
+          <!-- Floorball -->
+          <button class="sport-nav-item" data-sport="floorball">
+            <span class="sport-icon">🥍</span>
+            <span class="sport-name">Floorball</span>
+          </button>
+
+          <!-- Formula 1 -->
+          <button class="sport-nav-item" data-sport="formula1">
+            <span class="sport-icon">🏎️</span>
+            <span class="sport-name">Formula 1</span>
+          </button>
+
+          <!-- Futsal -->
+          <button class="sport-nav-item" data-sport="futsal">
+            <span class="sport-icon">⚽</span>
+            <span class="sport-name">Futsal</span>
+          </button>
+
+          <!-- Gaelic Sports -->
+          <button class="sport-nav-item" data-sport="gaelic">
+            <span class="sport-icon">🍀</span>
+            <span class="sport-name">Gaelic Sports</span>
+          </button>
+
+          <!-- Golf -->
+          <button class="sport-nav-item" data-sport="golf">
+            <span class="sport-icon">⛳</span>
+            <span class="sport-name">Golf</span>
+          </button>
+
+          <!-- Greyhounds -->
+          <button class="sport-nav-item" data-sport="greyhounds">
+            <span class="sport-icon">🐕</span>
+            <span class="sport-name">Greyhounds</span>
+          </button>
+
+          <!-- Handball -->
+          <button class="sport-nav-item" data-sport="handball">
+            <span class="sport-icon">🤾</span>
+            <span class="sport-name">Handball</span>
+          </button>
+
+          <!-- Hockey -->
+          <button class="sport-nav-item" data-sport="hockey">
+            <span class="sport-icon">🏒</span>
+            <span class="sport-name">Hockey</span>
+          </button>
+
+          <!-- Horse Racing -->
+          <button class="sport-nav-item" data-sport="horse-racing">
+            <span class="sport-icon">🏇</span>
+            <span class="sport-name">Horse Racing</span>
+          </button>
+
+          <!-- Ice Hockey -->
+          <button class="sport-nav-item" data-sport="ice-hockey">
+            <span class="sport-icon">🏒</span>
+            <span class="sport-name">Ice Hockey</span>
+          </button>
+
+          <!-- Lacrosse -->
+          <button class="sport-nav-item" data-sport="lacrosse">
+            <span class="sport-icon">🥍</span>
+            <span class="sport-name">Lacrosse</span>
+          </button>
+
+          <!-- MMA -->
+          <button class="sport-nav-item" data-sport="mma">
+            <span class="sport-icon">🥋</span>
+            <span class="sport-name">MMA</span>
+          </button>
+
+          <!-- Motor Sports -->
+          <button class="sport-nav-item" data-sport="motor-sports">
+            <span class="sport-icon">🏁</span>
+            <span class="sport-name">Motor Sports</span>
+          </button>
+
+          <!-- Pelota -->
+          <button class="sport-nav-item" data-sport="pelota">
+            <span class="sport-icon">🎾</span>
+            <span class="sport-name">Pelota</span>
+          </button>
+
+          <!-- Politics -->
+          <button class="sport-nav-item" data-sport="politics">
+            <span class="sport-icon">🏛️</span>
+            <span class="sport-name">Politics</span>
+          </button>
+
+          <!-- Rugby League -->
+          <button class="sport-nav-item" data-sport="rugby-league">
+            <span class="sport-icon">🏉</span>
+            <span class="sport-name">Rugby League</span>
+          </button>
+
+          <!-- Rugby Union -->
+          <button class="sport-nav-item" data-sport="rugby-union">
+            <span class="sport-icon">🏉</span>
+            <span class="sport-name">Rugby Union</span>
+          </button>
+
+          <!-- Snooker -->
+          <button class="sport-nav-item" data-sport="snooker">
+            <span class="sport-icon">🎱</span>
+            <span class="sport-name">Snooker</span>
+          </button>
+
+          <!-- Soccer (Featured) -->
+          <button class="sport-nav-item active" data-sport="soccer">
+            <span class="sport-icon">⚽</span>
+            <span class="sport-name">Soccer</span>
+          </button>
+
+          <!-- Table Tennis -->
+          <button class="sport-nav-item" data-sport="table-tennis">
+            <span class="sport-icon">🏓</span>
+            <span class="sport-name">Table Tennis</span>
+          </button>
+
+          <!-- Tennis -->
+          <button class="sport-nav-item" data-sport="tennis">
+            <span class="sport-icon">🎾</span>
+            <span class="sport-name">Tennis</span>
+          </button>
+
+          <!-- Volleyball -->
+          <button class="sport-nav-item" data-sport="volleyball">
+            <span class="sport-icon">🏐</span>
+            <span class="sport-name">Volleyball</span>
+          </button>
+
+          <!-- Water Polo -->
+          <button class="sport-nav-item" data-sport="water-polo">
+            <span class="sport-icon">🤽</span>
+            <span class="sport-name">Water Polo</span>
+          </button>
+
+          <!-- Winter Sports -->
+          <button class="sport-nav-item" data-sport="winter-sports">
+            <span class="sport-icon">⛷️</span>
+            <span class="sport-name">Winter Sports</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Matches Container -->
+    <!-- ✅ UPDATED HOME PAGE LIVE SECTION -->
+    <section class="live-events-section home-live-preview">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="live-indicator">●</span>
+          <h2>Live Now</h2>
+        </div>
+      </div>
+
+      <!-- ✅ EMPTY CONTAINER - JavaScript will fill this -->
+      <div class="live-matches-container" id="homeLiveContainer">
+        <!-- Matches will appear here automatically -->
+      </div>
+    </section>
+
+
 
 
     <!-- Winning Streak (Right) - Separate with MORE content -->
@@ -958,269 +1215,18 @@
           </div>
 
         </div>
-      </div> <!-- Highlights Section Header -->
-      <div class="highlights-header">
-        <div class="wrap">
-          <div class="section-hero">
-            <span class="fire-icon">🔥</span>
-            <div class="hero-text">
-              <h2 class="hero-title">Today's Highlights</h2>
-              <p class="hero-subtitle">Best betting opportunities of the day</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="event-carousel" id="featuredMatches" aria-label="Featured Matches">
-        <button class="carousel-btn left" aria-label="Scroll left">◀</button>
-
-        <div class="carousel-track" id="carouselTrack">
-          <!-- JS injects .event-card elements here -->
-        </div>
-
-        <button class="carousel-btn right" aria-label="Scroll right">▶</button>
       </div>
 
 
-      <!-- Sports Navigation Bar -->
-      <!-- Place this AFTER "Today's Highlights" carousel and BEFORE "Live Matches" section -->
-
-      <section class="sports-navigation-section">
-        <div class="wrap">
-          <div class="sports-nav-header">
-            <h3 class="sports-nav-title">Browse Sports</h3>
-            <button class="show-all-sports-btn" id="showAllSportsBtn">
-              Show All
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" />
-              </svg>
-            </button>
-          </div>
-
-          <div class="sports-nav-scroll">
-            <!-- American Football -->
-            <button class="sport-nav-item" data-sport="american-football">
-              <span class="sport-icon">🏈</span>
-              <span class="sport-name">American Football</span>
-            </button>
-
-            <!-- Australian Rules -->
-            <button class="sport-nav-item" data-sport="australian-rules">
-              <span class="sport-icon">🏉</span>
-              <span class="sport-name">Australian Rules</span>
-            </button>
-
-            <!-- Baseball -->
-            <button class="sport-nav-item" data-sport="baseball">
-              <span class="sport-icon">⚾</span>
-              <span class="sport-name">Baseball</span>
-            </button>
-
-            <!-- Basketball -->
-            <button class="sport-nav-item" data-sport="basketball">
-              <span class="sport-icon">🏀</span>
-              <span class="sport-name">Basketball</span>
-            </button>
-
-            <!-- Boxing -->
-            <button class="sport-nav-item" data-sport="boxing">
-              <span class="sport-icon">🥊</span>
-              <span class="sport-name">Boxing</span>
-            </button>
-
-            <!-- Cricket -->
-            <button class="sport-nav-item" data-sport="cricket">
-              <span class="sport-icon">🏏</span>
-              <span class="sport-name">Cricket</span>
-            </button>
-
-            <!-- Cycling -->
-            <button class="sport-nav-item" data-sport="cycling">
-              <span class="sport-icon">🚴</span>
-              <span class="sport-name">Cycling</span>
-            </button>
-
-            <!-- Darts -->
-            <button class="sport-nav-item" data-sport="darts">
-              <span class="sport-icon">🎯</span>
-              <span class="sport-name">Darts</span>
-            </button>
-
-            <!-- Esports -->
-            <button class="sport-nav-item" data-sport="esports">
-              <span class="sport-icon">🎮</span>
-              <span class="sport-name">Esports</span>
-            </button>
-
-            <!-- Floorball -->
-            <button class="sport-nav-item" data-sport="floorball">
-              <span class="sport-icon">🥍</span>
-              <span class="sport-name">Floorball</span>
-            </button>
-
-            <!-- Formula 1 -->
-            <button class="sport-nav-item" data-sport="formula1">
-              <span class="sport-icon">🏎️</span>
-              <span class="sport-name">Formula 1</span>
-            </button>
-
-            <!-- Futsal -->
-            <button class="sport-nav-item" data-sport="futsal">
-              <span class="sport-icon">⚽</span>
-              <span class="sport-name">Futsal</span>
-            </button>
-
-            <!-- Gaelic Sports -->
-            <button class="sport-nav-item" data-sport="gaelic">
-              <span class="sport-icon">🍀</span>
-              <span class="sport-name">Gaelic Sports</span>
-            </button>
-
-            <!-- Golf -->
-            <button class="sport-nav-item" data-sport="golf">
-              <span class="sport-icon">⛳</span>
-              <span class="sport-name">Golf</span>
-            </button>
-
-            <!-- Greyhounds -->
-            <button class="sport-nav-item" data-sport="greyhounds">
-              <span class="sport-icon">🐕</span>
-              <span class="sport-name">Greyhounds</span>
-            </button>
-
-            <!-- Handball -->
-            <button class="sport-nav-item" data-sport="handball">
-              <span class="sport-icon">🤾</span>
-              <span class="sport-name">Handball</span>
-            </button>
-
-            <!-- Hockey -->
-            <button class="sport-nav-item" data-sport="hockey">
-              <span class="sport-icon">🏒</span>
-              <span class="sport-name">Hockey</span>
-            </button>
-
-            <!-- Horse Racing -->
-            <button class="sport-nav-item" data-sport="horse-racing">
-              <span class="sport-icon">🏇</span>
-              <span class="sport-name">Horse Racing</span>
-            </button>
-
-            <!-- Ice Hockey -->
-            <button class="sport-nav-item" data-sport="ice-hockey">
-              <span class="sport-icon">🏒</span>
-              <span class="sport-name">Ice Hockey</span>
-            </button>
-
-            <!-- Lacrosse -->
-            <button class="sport-nav-item" data-sport="lacrosse">
-              <span class="sport-icon">🥍</span>
-              <span class="sport-name">Lacrosse</span>
-            </button>
-
-            <!-- MMA -->
-            <button class="sport-nav-item" data-sport="mma">
-              <span class="sport-icon">🥋</span>
-              <span class="sport-name">MMA</span>
-            </button>
-
-            <!-- Motor Sports -->
-            <button class="sport-nav-item" data-sport="motor-sports">
-              <span class="sport-icon">🏁</span>
-              <span class="sport-name">Motor Sports</span>
-            </button>
-
-            <!-- Pelota -->
-            <button class="sport-nav-item" data-sport="pelota">
-              <span class="sport-icon">🎾</span>
-              <span class="sport-name">Pelota</span>
-            </button>
-
-            <!-- Politics -->
-            <button class="sport-nav-item" data-sport="politics">
-              <span class="sport-icon">🏛️</span>
-              <span class="sport-name">Politics</span>
-            </button>
-
-            <!-- Rugby League -->
-            <button class="sport-nav-item" data-sport="rugby-league">
-              <span class="sport-icon">🏉</span>
-              <span class="sport-name">Rugby League</span>
-            </button>
-
-            <!-- Rugby Union -->
-            <button class="sport-nav-item" data-sport="rugby-union">
-              <span class="sport-icon">🏉</span>
-              <span class="sport-name">Rugby Union</span>
-            </button>
-
-            <!-- Snooker -->
-            <button class="sport-nav-item" data-sport="snooker">
-              <span class="sport-icon">🎱</span>
-              <span class="sport-name">Snooker</span>
-            </button>
-
-            <!-- Soccer (Featured) -->
-            <button class="sport-nav-item active" data-sport="soccer">
-              <span class="sport-icon">⚽</span>
-              <span class="sport-name">Soccer</span>
-            </button>
-
-            <!-- Table Tennis -->
-            <button class="sport-nav-item" data-sport="table-tennis">
-              <span class="sport-icon">🏓</span>
-              <span class="sport-name">Table Tennis</span>
-            </button>
-
-            <!-- Tennis -->
-            <button class="sport-nav-item" data-sport="tennis">
-              <span class="sport-icon">🎾</span>
-              <span class="sport-name">Tennis</span>
-            </button>
-
-            <!-- Volleyball -->
-            <button class="sport-nav-item" data-sport="volleyball">
-              <span class="sport-icon">🏐</span>
-              <span class="sport-name">Volleyball</span>
-            </button>
-
-            <!-- Water Polo -->
-            <button class="sport-nav-item" data-sport="water-polo">
-              <span class="sport-icon">🤽</span>
-              <span class="sport-name">Water Polo</span>
-            </button>
-
-            <!-- Winter Sports -->
-            <button class="sport-nav-item" data-sport="winter-sports">
-              <span class="sport-icon">⛷️</span>
-              <span class="sport-name">Winter Sports</span>
-            </button>
-          </div>
-        </div>
-      </section>
 
 
 
 
 
-      <!-- Live Matches Container -->
-      <!-- ✅ UPDATED HOME PAGE LIVE SECTION -->
-      <section class="live-events-section home-live-preview">
-        <div class="section-header">
-          <div class="section-title">
-            <span class="live-indicator">●</span>
-            <h2>Live Now</h2>
-          </div>
-        </div>
-
-        <!-- ✅ EMPTY CONTAINER - JavaScript will fill this -->
-        <div class="live-matches-container" id="homeLiveContainer">
-          <!-- Matches will appear here automatically -->
-        </div>
-      </section>
 
 
-      
+
+
 
       <!-- Modern Floating Bet Slip -->
       <div id="floatingBetSlip" class="floating-bet-slip">
@@ -1347,7 +1353,7 @@
         <div id="authMessage" class="auth-message hidden"></div>
   </section> <!-- Close homeSection -->
 
-  
+
   <!-- ==================== ALL SPORTS PAGE ==================== -->
   <section id="allSportsPage" class="page-section">
     <div class="wrap">
@@ -2340,6 +2346,193 @@
     </div>
   </footer>
 
+  <!-- ==================== MATCH MARKETS PAGE ==================== -->
+  <section id="matchMarketsPage" class="page-section">
+    <div class="wrap">
+
+      <!-- Back Button -->
+      <button class="back-to-matches-btn" id="backToMatches">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to Matches
+      </button>
+
+      <!-- Match Header -->
+      <div class="match-markets-header">
+        <div class="markets-league-badge" id="marketsLeagueBadge">SPAIN - LALIGA</div>
+
+        <div class="markets-match-display">
+          <div class="markets-team-row">
+            <span class="markets-team-name" id="marketsTeamName1">Wolfsburg (W)</span>
+            <span class="markets-team-score" id="marketsTeamScore1">4</span>
+          </div>
+          <div class="markets-vs-divider">VS</div>
+          <div class="markets-team-row">
+            <span class="markets-team-name" id="marketsTeamName2">Man Utd (W)</span>
+            <span class="markets-team-score" id="marketsTeamScore2">2</span>
+          </div>
+        </div>
+
+        <div class="markets-match-time">
+          <span class="live-dot">●</span>
+          <span id="marketsMatchTime">78:21</span>
+        </div>
+      </div>
+
+      <!-- Market Tabs -->
+      <div class="market-tabs-nav">
+        <button class="market-tab active" data-tab="all">All</button>
+        <button class="market-tab" data-tab="popular">Popular</button>
+        <button class="market-tab" data-tab="goals">Goals</button>
+        <button class="market-tab" data-tab="halftime">Half Time</button>
+        <button class="market-tab" data-tab="corners">Corners/Cards</button>
+        <button class="market-tab" data-tab="player">Player</button>
+      </div>
+
+      <!-- Markets Container -->
+      <div class="markets-content-grid">
+
+        <!-- Market 1: Fulltime Result -->
+        <div class="market-card" data-category="popular">
+          <h3 class="market-card-title">Fulltime Result</h3>
+          <div class="market-card-options three-way">
+            <button class="market-option-btn">
+              <span class="option-name">1</span>
+              <span class="option-value" id="ft-1">1.012</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">X</span>
+              <span class="option-value" id="ft-x">23.00</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">2</span>
+              <span class="option-value" id="ft-2">81.00</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Market 2: Double Chance -->
+        <div class="market-card" data-category="popular">
+          <h3 class="market-card-title">Double Chance</h3>
+          <div class="market-card-options three-way">
+            <button class="market-option-btn">
+              <span class="option-name">1X</span>
+              <span class="option-value">1.001</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">12</span>
+              <span class="option-value">1.003</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">X2</span>
+              <span class="option-value">7.50</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Market 3: Both Teams to Score -->
+        <div class="market-card" data-category="popular goals">
+          <h3 class="market-card-title">Both Teams to Score</h3>
+          <div class="market-card-options two-way">
+            <button class="market-option-btn">
+              <span class="option-name">Yes</span>
+              <span class="option-value">1.25</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">No</span>
+              <span class="option-value">3.75</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Market 4: Total Goals O/U 6.5 -->
+        <div class="market-card" data-category="goals">
+          <h3 class="market-card-title">Total Goals (O/U 6.5)</h3>
+          <div class="market-card-options two-way">
+            <button class="market-option-btn">
+              <span class="option-name">Over 6.5</span>
+              <span class="option-value">2.10</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">Under 6.5</span>
+              <span class="option-value">1.66</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Market 5: 7th Goal -->
+        <div class="market-card" data-category="goals">
+          <h3 class="market-card-title">7th Goal</h3>
+          <div class="market-card-options three-way">
+            <button class="market-option-btn">
+              <span class="option-name">Home</span>
+              <span class="option-value">3.50</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">No Goal</span>
+              <span class="option-value">1.66</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">Away</span>
+              <span class="option-value">4.50</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Market 6: Total Goals O/U 7.5 -->
+        <div class="market-card" data-category="goals">
+          <h3 class="market-card-title">Alternative Match Goals (O/U 7.5)</h3>
+          <div class="market-card-options two-way">
+            <button class="market-option-btn">
+              <span class="option-name">Over 7.5</span>
+              <span class="option-value">6.50</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">Under 7.5</span>
+              <span class="option-value">1.10</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Market 7: Asian Handicap -->
+        <div class="market-card" data-category="popular">
+          <h3 class="market-card-title">Asian Handicap (-2.5)</h3>
+          <div class="market-card-options two-way">
+            <button class="market-option-btn">
+              <span class="option-name">Home -2.5</span>
+              <span class="option-value">1.85</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">Away +2.5</span>
+              <span class="option-value">1.95</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Market 8: Half Time Result -->
+        <div class="market-card" data-category="halftime">
+          <h3 class="market-card-title">Half Time Result</h3>
+          <div class="market-card-options three-way">
+            <button class="market-option-btn">
+              <span class="option-name">1</span>
+              <span class="option-value">1.80</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">X</span>
+              <span class="option-value">4.20</span>
+            </button>
+            <button class="market-option-btn">
+              <span class="option-name">2</span>
+              <span class="option-value">12.00</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
   <script src="script.js"></script>
 
 </body>
