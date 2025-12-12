@@ -135,6 +135,8 @@ function cashOutBet(betIndex) {
   userStats.totalBets++;
   userStats.totalProfit += profit;
   userStats.weeklyProfit += profit;
+  updateMyBetsBadge();
+
 
   if (profit > 0) {
     userStats.totalWins++;
@@ -641,11 +643,13 @@ function ensureBetSlipSticky() {
 // UPDATE BET SLIP TRIGGER (COLLAPSED STATE)
 // ============================================
 
+
 function updateBetSlipTrigger() {
   const trigger = document.getElementById('betSlipCollapsed');
   const count = document.querySelector('.slip-count');
   const total = document.querySelector('.slip-odds');
   const savedSlip = localStorage.getItem(SAVED_SLIP_KEY);
+  const restoreSection = document.getElementById('restoreBetsSection');
 
   if (!trigger) return;
 
@@ -664,45 +668,46 @@ function updateBetSlipTrigger() {
     const totalOdds = slip.reduce((acc, bet) => acc * bet.odd, 1);
     if (total) {
       total.textContent = totalOdds.toFixed(2);
+      total.style.fontSize = '';
     }
 
-    // Add pulse animation
     trigger.classList.add('updated');
     setTimeout(() => trigger.classList.remove('updated'), 600);
-
   }
-  // Case 2: No bets, but has saved backup
-  else if (savedSlip) {
+  // Case 2: No bets, but has saved backup AND restore section is visible
+  else if (savedSlip && restoreSection && !restoreSection.classList.contains('hidden')) {
     try {
       const saved = JSON.parse(savedSlip);
       if (saved && saved.length > 0) {
         trigger.style.display = 'flex';
         trigger.classList.add('has-restore');
 
-        // Show restore indicator
         if (count) {
           count.textContent = saved.length;
           count.style.animation = 'none';
         }
         if (total) {
-          total.textContent = '🔄'; // Restore icon
+          total.textContent = '🔄';
           total.style.fontSize = '16px';
         }
-
         return;
       }
     } catch (error) {
       console.error('Error checking saved slip:', error);
+      localStorage.removeItem(SAVED_SLIP_KEY);
     }
-
-    // If savedSlip is invalid, hide
-    trigger.style.display = 'none';
-    trigger.classList.remove('has-restore');
   }
-  // Case 3: No bets and no backup
-  else {
-    trigger.style.display = 'none';
-    trigger.classList.remove('has-restore');
+
+  // Case 3: No bets and no valid backup - HIDE AND RESET
+  trigger.style.display = 'none';
+  trigger.classList.remove('has-restore');
+
+  // ✅ FORCE RESET THE DOM ELEMENTS
+  if (count) {
+    count.textContent = '0';
+  }
+  if (total) {
+    total.textContent = '0.00';
   }
 }
 
@@ -1423,126 +1428,264 @@ const PREMATCH_EVENTS = [
 let currentSelectedSport = null;
 
 // ============================================
+// CENTRALIZED MATCH TIMER SYSTEM
+// ============================================
+
+// Store all match timers centrally
+const matchTimers = new Map();
+
+// Initialize timers from LIVE_MATCHES_DATA
+function initializeMatchTimers() {
+  LIVE_MATCHES_DATA.forEach(match => {
+    if (!matchTimers.has(match.id)) {
+      // Parse time string (e.g., "79:38" or "Q3 8:45")
+      const timeData = parseMatchTime(match.time);
+      matchTimers.set(match.id, timeData);
+    }
+  });
+}
+
+// Parse different time formats
+function parseMatchTime(timeString) {
+  // Football/Soccer format: "79:38"
+  if (timeString.includes(':') && !timeString.includes('Q') && !timeString.includes('P')) {
+    const [minutes, seconds] = timeString.split(':').map(Number);
+    return {
+      type: 'football',
+      minutes: minutes,
+      seconds: seconds,
+      period: minutes >= 45 ? 2 : 1
+    };
+  }
+
+  // Basketball format: "Q3 8:45"
+  if (timeString.includes('Q')) {
+    const quarter = parseInt(timeString.match(/Q(\d)/)[1]);
+    const [minutes, seconds] = timeString.split(' ')[1].split(':').map(Number);
+    return {
+      type: 'basketball',
+      quarter: quarter,
+      minutes: minutes,
+      seconds: seconds
+    };
+  }
+
+  // Ice Hockey format: "P2 12:34"
+  if (timeString.includes('P')) {
+    const period = parseInt(timeString.match(/P(\d)/)[1]);
+    const [minutes, seconds] = timeString.split(' ')[1].split(':').map(Number);
+    return {
+      type: 'hockey',
+      period: period,
+      minutes: minutes,
+      seconds: seconds
+    };
+  }
+
+  // Tennis/Other format: "Set 2"
+  return {
+    type: 'other',
+    display: timeString
+  };
+}
+
+// Format timer back to display string
+function formatMatchTime(timeData) {
+  if (timeData.type === 'football') {
+    return `${timeData.minutes}:${timeData.seconds.toString().padStart(2, '0')}`;
+  }
+
+  if (timeData.type === 'basketball') {
+    return `Q${timeData.quarter} ${timeData.minutes}:${timeData.seconds.toString().padStart(2, '0')}`;
+  }
+
+  if (timeData.type === 'hockey') {
+    return `P${timeData.period} ${timeData.minutes}:${timeData.seconds.toString().padStart(2, '0')}`;
+  }
+
+  return timeData.display;
+}
+
+// Update timer (increment by 1 second)
+function incrementMatchTimer(matchId) {
+  const timeData = matchTimers.get(matchId);
+  if (!timeData) return;
+
+  if (timeData.type === 'football') {
+    timeData.seconds++;
+
+    if (timeData.seconds >= 60) {
+      timeData.seconds = 0;
+      timeData.minutes++;
+
+      if (timeData.minutes === 45) {
+        timeData.period = 2;
+      }
+
+      if (timeData.minutes >= 90) {
+        timeData.minutes = 90;
+        timeData.seconds = 0;
+      }
+    }
+  }
+
+  if (timeData.type === 'basketball') {
+    timeData.seconds--;
+
+    if (timeData.seconds < 0) {
+      timeData.seconds = 59;
+      timeData.minutes--;
+
+      if (timeData.minutes < 0) {
+        timeData.quarter++;
+        timeData.minutes = 12;
+        timeData.seconds = 0;
+
+        if (timeData.quarter > 4) {
+          timeData.quarter = 4;
+          timeData.minutes = 0;
+          timeData.seconds = 0;
+        }
+      }
+    }
+  }
+
+  if (timeData.type === 'hockey') {
+    timeData.seconds++;
+
+    if (timeData.seconds >= 60) {
+      timeData.seconds = 0;
+      timeData.minutes++;
+
+      if (timeData.minutes >= 20) {
+        timeData.period++;
+        timeData.minutes = 0;
+        timeData.seconds = 0;
+
+        if (timeData.period > 3) {
+          timeData.period = 3;
+          timeData.minutes = 20;
+          timeData.seconds = 0;
+        }
+      }
+    }
+  }
+
+  matchTimers.set(matchId, timeData);
+  updateAllMatchTimerDisplays(matchId);
+}
+
+// Update ALL displays of a match timer
+function updateAllMatchTimerDisplays(matchId) {
+  const timeData = matchTimers.get(matchId);
+  if (!timeData) return;
+
+  const timeString = formatMatchTime(timeData);
+
+  // Update in live matches cards
+  document.querySelectorAll(`.live-match-card[data-match-id="${matchId}"] .live-time`).forEach(el => {
+    el.textContent = timeString;
+  });
+
+  // Update in match markets page
+  const marketsTime = document.getElementById('marketsMatchTime');
+  if (marketsTime && marketsTime.dataset.matchId === matchId) {
+    marketsTime.textContent = timeString;
+  }
+
+  // Update in right panel
+  const panelTime = document.getElementById('panelTime');
+  if (panelTime && panelTime.dataset.matchId === matchId) {
+    panelTime.textContent = timeString + ' ● LIVE';
+  }
+
+  // Update the match data itself
+  const match = LIVE_MATCHES_DATA.find(m => m.id === matchId);
+  if (match) {
+    match.time = timeString;
+  }
+}
+
+// Start timer updates
+let timerUpdateInterval = null;
+
+function startMatchTimers() {
+  if (timerUpdateInterval) {
+    clearInterval(timerUpdateInterval);
+  }
+
+  initializeMatchTimers();
+
+  timerUpdateInterval = setInterval(() => {
+    matchTimers.forEach((timeData, matchId) => {
+      incrementMatchTimer(matchId);
+    });
+  }, 1000);
+
+  console.log('✅ Match timers started');
+}
+
+function stopMatchTimers() {
+  if (timerUpdateInterval) {
+    clearInterval(timerUpdateInterval);
+    timerUpdateInterval = null;
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopMatchTimers();
+  } else {
+    startMatchTimers();
+  }
+});
+
+// ============================================
 // DYNAMIC ODDS SYSTEM
 // ============================================
 
 let oddsUpdateInterval = null;
-let oddsHistory = new Map(); // Track previous odds for comparison
-
-// Function to generate realistic odds change
-function getOddsChange(currentOdd) {
-  // Smaller odds (favorites) change less, larger odds change more
-  const volatility = currentOdd < 2.0 ? 0.05 : (currentOdd < 5.0 ? 0.10 : 0.20);
-
-  // 60% chance to go up, 40% chance to go down (slight upward bias)
-  const direction = Math.random() > 0.4 ? 1 : -1;
-
-  // Random change within volatility range
-  const change = (Math.random() * volatility) * direction;
-
-  // Calculate new odd
-  let newOdd = currentOdd + change;
-
-  // Keep odds realistic (minimum 1.01, maximum 100.00)
-  newOdd = Math.max(1.01, Math.min(100.00, newOdd));
-
-  return parseFloat(newOdd.toFixed(2));
-}
 
 // Update odds for all matches
 function updateDynamicOdds() {
-  // Update MATCHES data
-  MATCHES.forEach(match => {
-    if (!match.odds) return;
+  // Select ALL odds buttons including market page
+  const allOddsButtons = document.querySelectorAll('.odd-btn[data-match][data-odd]');
 
-    Object.keys(match.odds).forEach(outcome => {
-      const oldOdd = match.odds[outcome];
-      const newOdd = getOddsChange(oldOdd);
+  allOddsButtons.forEach(btn => {
+    // Skip if in bet slip (locked)
+    if (btn.closest('.bet-slip-expanded')) return;
 
-      // Store history for animation
-      const key = `${match.id}-${outcome}`;
-      oddsHistory.set(key, {
-        old: oldOdd,
-        new: newOdd,
-        direction: newOdd > oldOdd ? 'up' : 'down'
-      });
+    const currentOdd = parseFloat(btn.dataset.odd);
+    if (isNaN(currentOdd)) return;
 
-      match.odds[outcome] = newOdd;
-    });
-  });
+    // Random change between -10% to +10%
+    const changePercent = (Math.random() * 0.2) - 0.1; // -0.1 to +0.1
+    const newOdd = Math.max(1.01, currentOdd * (1 + changePercent));
+    const roundedOdd = newOdd.toFixed(2);
 
-  // Update LIVE_MATCHES_DATA
-  LIVE_MATCHES_DATA.forEach(match => {
-    if (!match.odds) return;
+    // Only update if odds actually changed
+    if (roundedOdd === currentOdd.toFixed(2)) return;
 
-    Object.keys(match.odds).forEach(outcome => {
-      const oldOdd = match.odds[outcome];
-      const newOdd = getOddsChange(oldOdd);
+    // Update the display
+    const valueSpan = btn.querySelector('.option-value') || btn.querySelector('.val');
+    if (valueSpan) {
+      // Add animation class
+      if (newOdd > currentOdd) {
+        btn.classList.add('odds-up');
+        valueSpan.innerHTML = `${roundedOdd} <span class="odds-change-indicator up">↑</span>`;
+      } else {
+        btn.classList.add('odds-down');
+        valueSpan.innerHTML = `${roundedOdd} <span class="odds-change-indicator down">↓</span>`;
+      }
 
-      const key = `${match.id}-${outcome}`;
-      oddsHistory.set(key, {
-        old: oldOdd,
-        new: newOdd,
-        direction: newOdd > oldOdd ? 'up' : 'down'
-      });
-
-      match.odds[outcome] = newOdd;
-    });
-  });
-
-  // Update UI
-  updateOddsUI();
-}
-
-// Update all odds buttons on page
-function updateOddsUI() {
-  document.querySelectorAll('.odds-btn:not(.selected)').forEach(btn => {
-    const matchId = btn.dataset.match;
-    const outcome = btn.dataset.outcome;
-    const key = `${matchId}-${outcome}`;
-
-    // Skip if in bet slip (odds are locked)
-    const isInSlip = slip.some(s => s.matchId === matchId && s.outcome === outcome);
-    if (isInSlip) {
-      btn.classList.add('locked');
-      return;
-    }
-
-    const history = oddsHistory.get(key);
-    if (!history) return;
-
-    // Update button value
-    const valueEl = btn.querySelector('.val') || btn;
-    const oldValue = valueEl.textContent;
-    valueEl.textContent = formatOddDisplay(history.new);
-
-    // Update data attribute
-    btn.dataset.odd = history.new;
-
-    // Add animation if odds changed
-    if (history.old !== history.new) {
-      btn.classList.remove('odds-up', 'odds-down');
-
-      // Add direction class
-      setTimeout(() => {
-        btn.classList.add(history.direction === 'up' ? 'odds-up' : 'odds-down');
-
-        // Add arrow indicator
-        const indicator = document.createElement('span');
-        indicator.className = `odds-change-indicator ${history.direction}`;
-        indicator.textContent = history.direction === 'up' ? '↑' : '↓';
-
-        const valEl = btn.querySelector('.val') || btn;
-        valEl.appendChild(indicator);
-
-        // Remove indicator after animation
-        setTimeout(() => indicator.remove(), 2000);
-      }, 10);
-
-      // Remove animation class
+      // Remove animation class and arrow after 2 seconds
       setTimeout(() => {
         btn.classList.remove('odds-up', 'odds-down');
-      }, 600);
+        valueSpan.textContent = roundedOdd;
+      }, 2000);
+
+      // Update stored odd value
+      btn.dataset.odd = roundedOdd;
     }
   });
 }
@@ -1766,12 +1909,72 @@ const HISTORY_KEY = 'betnextgen-history-v1';
 
 
 
-// =========================
+// ============================================
 // State (with persistence)
-// =========================
+// ============================================
 const SLIP_KEY = 'betnextgen-slip-v1';
-let slip = JSON.parse(localStorage.getItem(SLIP_KEY) || '[]');
-function saveSlip() { localStorage.setItem(SLIP_KEY, JSON.stringify(slip)); }
+
+let slip = [];
+try {
+  const stored = localStorage.getItem(SLIP_KEY);
+  if (stored) {
+    const parsed = JSON.parse(stored);
+
+    // ✅ LAYER 2: Validate after loading
+    if (Array.isArray(parsed)) {
+      slip = parsed.filter(item =>
+        item &&
+        typeof item === 'object' &&
+        item.matchId &&
+        item.odd &&
+        typeof item.odd === 'number' &&
+        item.teams &&
+        Array.isArray(item.teams) &&
+        item.teams.length === 2 &&
+        item.market &&
+        item.selection
+      );
+
+      // ✅ LAYER 3: Auto-cleanup if corruption detected
+      if (slip.length !== parsed.length) {
+        console.warn(`🧹 Removed ${parsed.length - slip.length} corrupted items from bet slip`);
+        saveSlip(); // Save cleaned version immediately
+      }
+    }
+  }
+} catch (error) {
+  console.error('Error loading slip:', error);
+  localStorage.removeItem(SLIP_KEY);
+  slip = [];
+}
+
+function saveSlip() {
+  try {
+    // ✅ Validate before saving
+    const validSlip = slip.filter(item =>
+      item &&
+      typeof item === 'object' &&
+      item.matchId &&
+      item.odd &&
+      typeof item.odd === 'number' &&
+      item.teams &&
+      Array.isArray(item.teams) &&
+      item.teams.length === 2
+    );
+
+    // Only save if valid
+    if (validSlip.length !== slip.length) {
+      console.warn('Filtered out invalid items before saving');
+      slip = validSlip; // Update slip with valid items only
+    }
+
+    localStorage.setItem(SLIP_KEY, JSON.stringify(validSlip));
+  } catch (error) {
+    console.error('Error saving slip:', error);
+    // On error, clear storage to prevent corruption
+    localStorage.removeItem(SLIP_KEY);
+  }
+}
 
 // ============================================
 // RESTORE BETS FUNCTIONALITY
@@ -1867,8 +2070,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initial check
-  updateRestoreButton();
+  // Dismiss restore button
+  const dismissRestoreBtn = document.getElementById('dismissRestoreBtn');
+
+  if (dismissRestoreBtn) {
+    dismissRestoreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      // Clear saved slip from storage
+      localStorage.removeItem(SAVED_SLIP_KEY);
+
+      // Hide restore section
+      document.getElementById('restoreBetsSection').classList.add('hidden');
+
+      // ✅ UPDATE: Call both functions to hide collapsed trigger too
+      updateRestoreButton();
+      updateBetSlipTrigger();
+
+      toast('❌ Previous bets dismissed');
+    });
+  }
 
   // ============================================
   // MATCH MARKETS EVENT LISTENERS
@@ -1893,16 +2114,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
- // Back button
-document.getElementById('backToMatches')?.addEventListener('click', () => {
-  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-  document.getElementById('inplaySection').classList.add('active');
-  
-  // Show footer and stats again
-  document.querySelector('.site-footer').style.display = 'block';
-  document.querySelector('.live-stats-dashboard').style.display = 'block'; // ✅ ADD THIS
-  document.querySelector('.search-bar-section').style.display = 'block'; // ✅ ADD THIS TOO
-});
+  // Back button
+  document.getElementById('backToMatches')?.addEventListener('click', () => {
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    document.getElementById('inplaySection').classList.add('active');
+
+    // Show footer and stats again
+    document.querySelector('.site-footer').style.display = 'block';
+    document.querySelector('.live-stats-dashboard').style.display = 'block'; // ✅ ADD THIS
+    document.querySelector('.search-bar-section').style.display = 'block'; // ✅ ADD THIS TOO
+  });
 
   // Market option clicks
   document.querySelectorAll('.market-option-btn').forEach(btn => {
@@ -1918,30 +2139,29 @@ document.getElementById('backToMatches')?.addEventListener('click', () => {
   document.addEventListener('click', function (e) {
     const matchCard = e.target.closest('.live-match-card');
 
-    if (matchCard && !e.target.closest('.odd-btn')) {
-      const leagueSection = matchCard.closest('.league-section');
-      const league = leagueSection?.querySelector('.league-name')?.textContent || 'Unknown League';
-      const teams = matchCard.querySelectorAll('.team-name');
-      const scores = matchCard.querySelectorAll('.team-score');
-      const time = matchCard.querySelector('.match-time')?.textContent || '0:00';
-      const odds = matchCard.querySelectorAll('.odd-btn');
+    if (matchCard && !e.target.closest('.odd-btn') && !e.target.closest('.odds-btn') && !e.target.closest('.action-btn')) {
+      // ✅ Get match ID from card
+      const matchId = matchCard.dataset.matchId;
+
+      // ✅ Find actual match data
+      const match = LIVE_MATCHES_DATA.find(m => m.id === matchId);
+
+      if (!match) {
+        console.error('Match not found:', matchId);
+        return;
+      }
+
+      // ✅ Use real match data with current timer
+      const currentTimer = matchTimers.get(matchId);
+      const currentTime = currentTimer ? formatMatchTime(currentTimer) : match.time;
 
       const matchData = {
-        league: league,
-        teams: [
-          teams[0]?.textContent || 'Team 1',
-          teams[1]?.textContent || 'Team 2'
-        ],
-        score: [
-          scores[0]?.textContent || '0',
-          scores[1]?.textContent || '0'
-        ],
-        time: time,
-        odds: {
-          '1': odds[0]?.textContent || '1.50',
-          'X': odds[1]?.textContent || '3.50',
-          '2': odds[2]?.textContent || '4.00'
-        }
+        id: match.id,
+        league: match.league,
+        teams: match.teams,
+        score: match.score,
+        time: currentTime,
+        odds: match.odds
       };
 
       openMatchMarketsPage(matchData);
@@ -2087,36 +2307,91 @@ document.addEventListener('click', (e) => {
 function openMatchMarketsPage(matchData) {
   // Hide all pages
   document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-  
-  // Show match markets page
+
   const marketsPage = document.getElementById('matchMarketsPage');
-  
+
   if (marketsPage) {
     marketsPage.classList.add('active');
   } else {
     console.error('matchMarketsPage not found!');
     return;
   }
-  
-  // Hide footer and stats
+
+  // Store current match ID globally
+  window.currentMarketMatchId = matchData.id;
+
+  // Hide footer, stats, and search bar
   document.querySelector('.site-footer').style.display = 'none';
-  document.querySelector('.live-stats-dashboard').style.display = 'none'; // ✅ ADD THIS
-  document.querySelector('.search-bar-section').style.display = 'none'; // ✅ ADD THIS TOO
-  
+  document.querySelector('.live-stats-dashboard').style.display = 'none';
+  document.querySelector('.search-bar-section').style.display = 'none';
+
   // Populate match info
   document.getElementById('marketsLeagueBadge').textContent = matchData.league;
   document.getElementById('marketsTeamName1').textContent = matchData.teams[0];
   document.getElementById('marketsTeamName2').textContent = matchData.teams[1];
-  document.getElementById('marketsTeamScore1').textContent = matchData.score[0];
-  document.getElementById('marketsTeamScore2').textContent = matchData.score[1];
-  document.getElementById('marketsMatchTime').textContent = matchData.time;
-  
-  // Update odds
-  document.getElementById('ft-1').textContent = matchData.odds['1'];
-  document.getElementById('ft-x').textContent = matchData.odds['X'];
-  document.getElementById('ft-2').textContent = matchData.odds['2'];
-  
-  // Scroll to top
+
+  document.getElementById('marketsScore1').textContent = matchData.score[0];
+  document.getElementById('marketsScore2').textContent = matchData.score[1];
+
+  // ✅ Sync timer with live matches
+  const timeEl = document.getElementById('marketsMatchTime');
+  if (timeEl && matchData.id) {
+    timeEl.dataset.matchId = matchData.id;
+
+    // Get current timer from central system
+    const currentTimer = matchTimers.get(matchData.id);
+    if (currentTimer) {
+      timeEl.textContent = formatMatchTime(currentTimer);
+    } else {
+      timeEl.textContent = matchData.time;
+    }
+  }
+
+  // ✅ UPDATED: Set initial odds for fulltime result specifically
+  const ft1Span = document.getElementById('ft-1');
+  const ftXSpan = document.getElementById('ft-x');
+  const ft2Span = document.getElementById('ft-2');
+
+  if (ft1Span) {
+    ft1Span.textContent = matchData.odds['1'];
+    const ft1Btn = ft1Span.closest('.market-option-btn');
+    if (ft1Btn) {
+      ft1Btn.dataset.match = matchData.id;
+      ft1Btn.dataset.odd = matchData.odds['1'];
+    }
+  }
+
+  if (ftXSpan) {
+    ftXSpan.textContent = matchData.odds['X'];
+    const ftXBtn = ftXSpan.closest('.market-option-btn');
+    if (ftXBtn) {
+      ftXBtn.dataset.match = matchData.id;
+      ftXBtn.dataset.odd = matchData.odds['X'];
+    }
+  }
+
+  if (ft2Span) {
+    ft2Span.textContent = matchData.odds['2'];
+    const ft2Btn = ft2Span.closest('.market-option-btn');
+    if (ft2Btn) {
+      ft2Btn.dataset.match = matchData.id;
+      ft2Btn.dataset.odd = matchData.odds['2'];
+    }
+  }
+
+  // ✅ Set data attributes for ALL OTHER market buttons
+  const allMarketButtons = document.querySelectorAll('#matchMarketsPage .market-option-btn.odd-btn');
+
+  allMarketButtons.forEach(btn => {
+    const valueSpan = btn.querySelector('.option-value');
+
+    if (valueSpan && !btn.dataset.match) {
+      // Set match ID and current odd value
+      btn.dataset.match = matchData.id;
+      btn.dataset.odd = valueSpan.textContent;
+    }
+  });
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2165,6 +2440,7 @@ const closeMyBets = document.getElementById('closeMyBets');
 myBetsBtn?.addEventListener('click', () => {
   myBetsModal.classList.remove('hidden');
   renderMyBets(); // ADD THIS
+  updateMyBetsBadge();
 });
 
 // Close modal
@@ -2402,7 +2678,7 @@ renderSlip = function () { _renderSlip(); repaintOdds(); };
 // =========================
 // Find this code in your existing click handler (around line 900)
 document.addEventListener('click', (e) => {
-  const oddBtn = e.target.closest('.odd-btn');
+  const oddBtn = e.target.closest('.odd-btn') || e.target.closest('.odds-btn');
   if (oddBtn) {
     if (oddBtn.disabled) return;
     const matchId = oddBtn.dataset.match;
@@ -2410,7 +2686,10 @@ document.addEventListener('click', (e) => {
     const odd = Number(oddBtn.dataset.odd);
     if (!Number.isFinite(odd)) return;
 
+    // ✅ Find the match (check both regular and live matches)
     const match = MATCHES.find(m => m.id === matchId) || LIVE_MATCHES_DATA.find(m => m.id === matchId);
+    if (!match) return;
+
     const market = displayName(match.sport, outcome, match.teams);
 
     const idx = slip.findIndex(b => b.matchId === matchId);
@@ -2418,17 +2697,28 @@ document.addEventListener('click', (e) => {
       slip.splice(idx, 1);
       toast('Selection removed');
     } else if (idx > -1) {
-      slip[idx] = { matchId, teams: match.teams, outcome, odd, market };
+      slip[idx] = {
+        matchId,
+        teams: match.teams,
+        outcome,
+        odd,
+        market,
+        isLive: !!LIVE_MATCHES_DATA.find(m => m.id === matchId), // ✅ Mark as live
+        league: match.league || match.comp,
+        lockedOdd: odd
+      };
       toast('Selection updated');
     } else {
-      // ✅ ADD THIS: Lock odds when added to slip
+      // ✅ Add new selection with live flag
       slip.push({
         matchId,
         teams: match.teams,
         outcome,
         odd,
         market,
-        lockedOdd: odd // Store original odd
+        isLive: !!LIVE_MATCHES_DATA.find(m => m.id === matchId), // ✅ Mark as live
+        league: match.league || match.comp,
+        lockedOdd: odd
       });
       toast('Selection added');
     }
@@ -2515,33 +2805,51 @@ $$('#place')?.addEventListener('click', () => {
 
   setWallet(wallet - requiredStake);
 
+  // ✅ Determine actual bet type based on number of selections
+  let actualBetType;
+  if (slip.length === 1) {
+    actualBetType = 'Single';
+  } else if (betMode === 'combo') {
+    actualBetType = 'Combo';
+  } else {
+    actualBetType = 'Singles';
+  }
+
   showModal('Bet Confirmation', `
-    <p>Mode: <strong>${betMode === 'combo' ? 'Combo' : 'Singles'}</strong></p>
-    <p>Total Stake: <strong>${fmtSafe(requiredStake)}</strong></p>
-    <p>Total Odds (dec): <strong>${fmtSafe(totalDec)}</strong></p>
-    <p>Potential Payout: <strong>${fmtSafe(payout)}</strong></p>
-    <ul>${ticketHtml}</ul>
-  `);
+  <p>Mode: <strong>${actualBetType}</strong></p>
+  <p>Total Stake: <strong>${fmtSafe(requiredStake)}</strong></p>
+  <p>Total Odds (dec): <strong>${fmtSafe(totalDec)}</strong></p>
+  <p>Potential Payout: <strong>${fmtSafe(payout)}</strong></p>
+  <ul>${ticketHtml}</ul>
+`);
   toast('Bet placed');
 
-  // Save bet to My Bets
+  // ✅ Check if any selections are live
+  const hasLiveBets = slip.some(s => s.isLive);
+
   const newBet = {
     id: Date.now(),
-    type: betMode,
+    type: slip.length === 1 ? 'single' : betMode,
     selections: slip.map(s => ({
       match: `${s.teams[0]} vs ${s.teams[1]}`,
       market: s.market,
-      odds: s.odd
+      odds: s.odd,
+      isLive: s.isLive || false, // ✅ Track live status per selection
+      league: s.league || 'Unknown'
     })),
     stake: requiredStake,
     totalOdds: totalDec,
     potentialWin: payout,
-    status: 'unsettled',
+    status: hasLiveBets ? 'live' : 'unsettled', // ✅ Mark bet as live if contains live selections
+    isLive: hasLiveBets, // ✅ Add live flag
     timestamp: new Date().toISOString()
   };
 
   userBets.push(newBet);
   localStorage.setItem('userBets', JSON.stringify(userBets));
+
+  localStorage.setItem("userBets", JSON.stringify(userBets));
+  updateMyBetsBadge(); // ✅ Update badge after placing bet
 
   // Clear slip after placing
   slip = [];
@@ -5100,30 +5408,61 @@ if (getPredictionBtn) {
 
 // Render My Bets - FIXED VERSION
 function renderMyBets() {
-  const unsettled = userBets.filter(b => b.status === 'unsettled');
-  const settled = userBets.filter(b => b.status === 'settled');
+  const live = userBets.filter(b => b.isLive && b.status === 'live');
+  const unsettled = userBets.filter(b => b.status === 'unsettled' || (b.status === 'live' && !b.isLive));
+  const settled = userBets.filter(b => b.status === 'settled' || b.status === 'cashed-out');
 
-  // ✅ FIX: Use actual userBets index, not filtered array index
+  // ✅ LIVE NOW TAB
+  document.getElementById('live-content').innerHTML = live.length
+    ? live.map(bet => {
+      const actualIndex = userBets.indexOf(bet);
+      return `
+        <div class="bet-card live-bet-card">
+          <div class="bet-header">
+            <div class="bet-type">
+              <span class="live-pulse">●</span> LIVE ${bet.type.toUpperCase()}
+            </div>
+            <button class="cancel-bet-btn" data-bet-index="${actualIndex}" title="Cancel Bet">×</button>
+          </div>
+          ${bet.selections.map(s => `
+            <div class="bet-match">
+              <div class="match-league">${s.league || 'Live Match'}</div>
+              <div class="match-name">${s.match}</div>
+              <div class="match-selection">${s.market} @ ${s.odds}</div>
+            </div>
+          `).join('')}
+          <div class="bet-details">
+            <span>Stake: ${bet.stake.toFixed(2)} лв</span>
+            <span>Odds: ${bet.totalOdds.toFixed(2)}</span>
+            <span class="potential-live">Potential: ${bet.potentialWin.toFixed(2)} лв</span>
+          </div>
+        </div>
+      `;
+    }).join('')
+    : '<p class="empty-state">No live bets</p>';
+
+  // ✅ UNSETTLED TAB
   document.getElementById('unsettled-content').innerHTML = unsettled.length
     ? unsettled.map(bet => {
-      const actualIndex = userBets.indexOf(bet); // ✅ Get real index
+      const actualIndex = userBets.indexOf(bet);
       return `
-          <div class="bet-card">
-            <div class="bet-header">
-              <div class="bet-type">${bet.type.toUpperCase()}</div>
-              <button class="cancel-bet-btn" data-bet-index="${actualIndex}" title="Cancel Bet">×</button>
-            </div>
-            ${bet.selections.map(s => `<div class="bet-match">${s.match} - ${s.market} @ ${s.odds}</div>`).join('')}
-            <div class="bet-details">
-              <span>Stake: ${bet.stake.toFixed(2)} лв</span>
-              <span>Odds: ${bet.totalOdds.toFixed(2)}</span>
-              <span>Potential: ${bet.potentialWin.toFixed(2)} лв</span>
-            </div>
+        <div class="bet-card">
+          <div class="bet-header">
+            <div class="bet-type">${bet.type.toUpperCase()}</div>
+            <button class="cancel-bet-btn" data-bet-index="${actualIndex}" title="Cancel Bet">×</button>
           </div>
-        `;
+          ${bet.selections.map(s => `<div class="bet-match">${s.match} - ${s.market} @ ${s.odds}</div>`).join('')}
+          <div class="bet-details">
+            <span>Stake: ${bet.stake.toFixed(2)} лв</span>
+            <span>Odds: ${bet.totalOdds.toFixed(2)}</span>
+            <span>Potential: ${bet.potentialWin.toFixed(2)} лв</span>
+          </div>
+        </div>
+      `;
     }).join('')
     : '<p class="empty-state">No unsettled bets</p>';
 
+  // ✅ SETTLED TAB
   document.getElementById('settled-content').innerHTML = settled.length
     ? settled.map(bet => `
         <div class="bet-card">
@@ -5137,10 +5476,36 @@ function renderMyBets() {
       `).join('')
     : '<p class="empty-state">No settled bets</p>';
 
-  // ✅ ADD EVENT LISTENERS FOR CANCEL BUTTONS
   attachCancelListeners();
 }
 
+// ============================================
+// UPDATE MY BETS BADGE
+// ============================================
+function updateMyBetsBadge() {
+  const badge = document.getElementById('myBetsBadge');
+  if (!badge) return;
+
+  // Get all bets from localStorage
+  const myBets = JSON.parse(localStorage.getItem('userBets') || '[]');
+
+  // Count active bets (live + unsettled)
+  const activeBets = myBets.filter(bet =>
+    bet.status === 'live' || bet.status === 'unsettled'
+  );
+
+  const count = activeBets.length;
+
+  // Update badge
+  if (count > 0) {
+    badge.textContent = count;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+
+  console.log(`📊 My Bets badge updated: ${count} active bets`);
+}
 
 // Handle cancel bet button clicks
 // Handle cancel bet button clicks
@@ -5434,13 +5799,11 @@ document.addEventListener('DOMContentLoaded', renderRecentWinners);
 // ============================================
 
 // Function to create a single live match card HTML
+// ✅ UPDATE: Add match-id to cards
 function createLiveMatchCard(match) {
   const isFootball = match.sport === 'football' || match.sport === 'ice-hockey' || match.sport === 'handball';
-
-  // Determine number of outcomes
   const marketType = isFootball ? '3-way' : '2-way';
 
-  // Determine odds structure
   let oddsHTML = '';
   if (isFootball) {
     oddsHTML = `
@@ -5450,11 +5813,19 @@ function createLiveMatchCard(match) {
         <span>2</span>
       </div>
       <div class="odds-buttons" data-market="3-way">
-        <button class="odds-btn" data-match="${match.id}" data-outcome="1" data-odd="${match.odds['1']}">${match.odds['1']}</button>
-        <button class="odds-btn" data-match="${match.id}" data-outcome="X" data-odd="${match.odds['X']}">${match.odds['X']}</button>
-        <button class="odds-btn" data-match="${match.id}" data-outcome="2" data-odd="${match.odds['2']}">${match.odds['2']}</button>
-      </div>
-    `;
+  <button class="odds-btn odd-btn" data-match="${match.id}" data-outcome="1" data-odd="${match.odds['1']}">
+    <span class="lbl">1</span>
+    <span class="val">${match.odds['1']}</span>
+  </button>
+  <button class="odds-btn odd-btn" data-match="${match.id}" data-outcome="X" data-odd="${match.odds['X']}">
+    <span class="lbl">X</span>
+    <span class="val">${match.odds['X']}</span>
+  </button>
+  <button class="odds-btn odd-btn" data-match="${match.id}" data-outcome="2" data-odd="${match.odds['2']}">
+    <span class="lbl">2</span>
+    <span class="val">${match.odds['2']}</span>
+  </button>
+</div>    `;
   } else {
     oddsHTML = `
       <div class="odds-labels" style="grid-template-columns: repeat(2, 1fr);">
@@ -5462,23 +5833,25 @@ function createLiveMatchCard(match) {
         <span>2</span>
       </div>
       <div class="odds-buttons" data-market="2-way">
-        <button class="odds-btn" data-match="${match.id}" data-outcome="1" data-odd="${match.odds['1']}">${match.odds['1']}</button>
-        <button class="odds-btn" data-match="${match.id}" data-outcome="2" data-odd="${match.odds['2']}">${match.odds['2']}</button>
-      </div>
+  <button class="odds-btn odd-btn" data-match="${match.id}" data-outcome="1" data-odd="${match.odds['1']}">
+    <span class="lbl">1</span>
+    <span class="val">${match.odds['1']}</span>
+  </button>
+  <button class="odds-btn odd-btn" data-match="${match.id}" data-outcome="2" data-odd="${match.odds['2']}">
+    <span class="lbl">2</span>
+    <span class="val">${match.odds['2']}</span>
+  </button>
+</div>
     `;
   }
 
-
-
   return `
-    <div class="live-match-card" data-sport="${match.sport}">
-      <!-- LEFT: Time -->
+    <div class="live-match-card" data-sport="${match.sport}" data-match-id="${match.id}">
       <div class="match-time-display">
         <div class="live-time">${match.time}</div>
         <div class="live-indicator">●</div>
       </div>
 
-      <!-- CENTER: Teams & Scores -->
       <div class="teams-display">
         <div class="team-row">
           <span class="team-name">${match.teams[0]}</span>
@@ -5490,7 +5863,6 @@ function createLiveMatchCard(match) {
         </div>
       </div>
 
-      <!-- RIGHT: Odds -->
       <div class="betting-section">
         <div class="odds-container">
           <div class="odds-set active">
@@ -5499,14 +5871,13 @@ function createLiveMatchCard(match) {
         </div>
       </div>
 
-      <!-- FAR RIGHT: Action Buttons -->
       <div class="match-actions">
-<button class="action-btn stats-btn" title="Statistics" onclick="openMatchPanel('${match.id}', 'stats')">
+        <button class="action-btn stats-btn" title="Statistics" onclick="openMatchPanel('${match.id}', 'stats')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="currentColor" />
           </svg>
         </button>
-<button class="action-btn tv-btn" title="Watch Live" onclick="openMatchPanel('${match.id}', 'stream')">
+        <button class="action-btn tv-btn" title="Watch Live" onclick="openMatchPanel('${match.id}', 'stream')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none" />
             <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" />
@@ -5597,6 +5968,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render in-play page (show FOOTBALL by default since we removed "All Sports")
   const footballMatches = LIVE_MATCHES_DATA.filter(m => m.sport === 'football');
   renderLiveMatches('inplayLiveContainer', footballMatches);
+
+  startMatchTimers();
+
 });
 
 // Sport filter functionality
@@ -5812,7 +6186,12 @@ function openMatchPanel(matchId, tab = 'stats') {
   document.getElementById('panelTeam2').textContent = match.teams[1];
   document.getElementById('panelScore1').textContent = match.score[0];
   document.getElementById('panelScore2').textContent = match.score[1];
-  document.getElementById('panelTime').textContent = match.time + ' ● LIVE';
+
+  const panelTimeEl = document.getElementById('panelTime');
+  if (panelTimeEl) {
+    panelTimeEl.dataset.matchId = matchId;
+    panelTimeEl.textContent = match.time + ' ● LIVE';
+  }
 
   // Generate stats
   const statsHTML = generateMatchStats(match);
@@ -5987,3 +6366,15 @@ function createConfetti() {
   }
 }
 
+// ============================================
+// FORCE UI UPDATE ON PAGE LOAD
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Force update bet slip UI after validation
+  setTimeout(() => {
+    updateBetSlipUI();
+    updateBetSlipTrigger();
+    updateMyBetsBadge();
+    console.log('✅ Bet slip UI force updated on load');
+  }, 100);
+});
