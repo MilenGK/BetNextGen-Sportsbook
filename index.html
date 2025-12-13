@@ -118,6 +118,28 @@
           </svg>
         </button>
 
+        <!-- Notification Bell Icon -->
+        <div class="notifications-wrapper">
+          <button id="notificationBtn" class="notification-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span id="notificationBadge" class="notification-badge hidden">0</span>
+          </button>
+
+          <!-- Notification Dropdown Panel -->
+          <div id="notificationPanel" class="notification-panel hidden">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+              <button id="clearAllNotifications" class="clear-all-btn">Clear All</button>
+            </div>
+            <div id="notificationList" class="notification-list">
+              <p class="empty-notifications">No new notifications</p>
+            </div>
+          </div>
+        </div>
+        
         <!-- Profile Wrapper (hidden by default when logged out) -->
         <div id="profileWrapper" class="hidden">
           <button id="profileToggleBtn" class="profile-avatar-btn">
@@ -489,6 +511,12 @@
     </div>
   </div>
 
+  <!-- Validation Popup -->
+  <div id="validationPopup" class="validation-popup hidden">
+    <div class="validation-icon">⚠️</div>
+    <div class="validation-message" id="validationMessage"></div>
+  </div>
+
   <!-- My Bets Modal - Add at the END of body, before closing </body> tag -->
   <div id="myBetsModal" class="my-bets-modal hidden">
     <div class="my-bets-overlay"></div>
@@ -531,6 +559,43 @@
         <div class="bet-tab-content" id="settled-content">
           <p class="empty-state">No settled bets</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cash Out Confirmation Modal -->
+  <div id="cashOutModal" class="auth-modal">
+    <div class="auth-modal-content" style="max-width: 400px;">
+      <button class="close-x" onclick="closeCashOutModal()">×</button>
+      <h2 style="color: #ffd34d; margin-bottom: 20px;">💰 Cash Out</h2>
+
+      <div id="cashOutDetails"
+        style="background: rgba(255, 211, 77, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="color: #94a3b8;">Your Stake:</span>
+          <strong id="cashOutStake" style="color: white;">50.00 лв</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="color: #94a3b8;">Potential Win:</span>
+          <strong id="cashOutPotential" style="color: #10b981;">150.00 лв</strong>
+        </div>
+        <div style="height: 1px; background: rgba(255, 211, 77, 0.2); margin: 16px 0;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #ffd34d; font-size: 16px; font-weight: 600;">Cash Out Offer:</span>
+          <strong id="cashOutOffer" style="color: #ffd34d; font-size: 24px;">127.50 лв</strong>
+        </div>
+        <div style="color: #94a3b8; font-size: 12px; margin-top: 8px; text-align: center;">
+          (85% of potential win)
+        </div>
+      </div>
+
+      <p style="color: #94a3b8; font-size: 13px; text-align: center; margin-bottom: 20px;">
+        ⚠️ This action is final. You cannot undo a cash out.
+      </p>
+
+      <div style="display: flex; gap: 12px;">
+        <button onclick="closeCashOutModal()" class="btn btn-login" style="flex: 1;">Cancel</button>
+        <button id="confirmCashOutBtn" class="btn btn-join" style="flex: 1;">Confirm Cash Out</button>
       </div>
     </div>
   </div>
@@ -2412,145 +2477,145 @@
       <div class="markets-content-grid">
 
 
-          <!-- Market 1: Fulltime Result -->
-          <div class="market-card" data-category="popular">
-            <h3 class="market-card-title">FULLTIME RESULT</h3>
-            <div class="market-card-options three-way">
-              <button class="market-option-btn odd-btn" data-market="ft" data-outcome="1">
-                <span class="option-name">1</span>
-                <span class="option-value" id="ft-1">1.26</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="ft" data-outcome="X">
-                <span class="option-name">X</span>
-                <span class="option-value" id="ft-x">5.23</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="ft" data-outcome="2">
-                <span class="option-name">2</span>
-                <span class="option-value" id="ft-2">28.90</span>
-              </button>
-            </div>
+        <!-- Market 1: Fulltime Result -->
+        <div class="market-card" data-category="popular">
+          <h3 class="market-card-title">FULLTIME RESULT</h3>
+          <div class="market-card-options three-way">
+            <button class="market-option-btn odd-btn" data-market="ft" data-outcome="1">
+              <span class="option-name">1</span>
+              <span class="option-value" id="ft-1">1.26</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="ft" data-outcome="X">
+              <span class="option-name">X</span>
+              <span class="option-value" id="ft-x">5.23</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="ft" data-outcome="2">
+              <span class="option-name">2</span>
+              <span class="option-value" id="ft-2">28.90</span>
+            </button>
           </div>
+        </div>
 
-          <!-- Market 2: Double Chance -->
-          <div class="market-card" data-category="popular">
-            <h3 class="market-card-title">DOUBLE CHANCE</h3>
-            <div class="market-card-options three-way">
-              <button class="market-option-btn odd-btn" data-market="dc" data-outcome="1X">
-                <span class="option-name">1X</span>
-                <span class="option-value" id="dc-1x">1.001</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="dc" data-outcome="12">
-                <span class="option-name">12</span>
-                <span class="option-value" id="dc-12">1.003</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="dc" data-outcome="X2">
-                <span class="option-name">X2</span>
-                <span class="option-value" id="dc-x2">7.50</span>
-              </button>
-            </div>
+        <!-- Market 2: Double Chance -->
+        <div class="market-card" data-category="popular">
+          <h3 class="market-card-title">DOUBLE CHANCE</h3>
+          <div class="market-card-options three-way">
+            <button class="market-option-btn odd-btn" data-market="dc" data-outcome="1X">
+              <span class="option-name">1X</span>
+              <span class="option-value" id="dc-1x">1.001</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="dc" data-outcome="12">
+              <span class="option-name">12</span>
+              <span class="option-value" id="dc-12">1.003</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="dc" data-outcome="X2">
+              <span class="option-name">X2</span>
+              <span class="option-value" id="dc-x2">7.50</span>
+            </button>
           </div>
+        </div>
 
-          <!-- Market 3: Both Teams to Score -->
-          <div class="market-card" data-category="popular goals">
-            <h3 class="market-card-title">BOTH TEAMS TO SCORE</h3>
-            <div class="market-card-options two-way">
-              <button class="market-option-btn odd-btn" data-market="btts" data-outcome="yes">
-                <span class="option-name">YES</span>
-                <span class="option-value" id="btts-yes">1.25</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="btts" data-outcome="no">
-                <span class="option-name">NO</span>
-                <span class="option-value" id="btts-no">3.75</span>
-              </button>
-            </div>
+        <!-- Market 3: Both Teams to Score -->
+        <div class="market-card" data-category="popular goals">
+          <h3 class="market-card-title">BOTH TEAMS TO SCORE</h3>
+          <div class="market-card-options two-way">
+            <button class="market-option-btn odd-btn" data-market="btts" data-outcome="yes">
+              <span class="option-name">YES</span>
+              <span class="option-value" id="btts-yes">1.25</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="btts" data-outcome="no">
+              <span class="option-name">NO</span>
+              <span class="option-value" id="btts-no">3.75</span>
+            </button>
           </div>
+        </div>
 
-          <!-- Market 4: Total Goals O/U 6.5 -->
-          <div class="market-card" data-category="goals">
-            <h3 class="market-card-title">TOTAL GOALS (O/U 6.5)</h3>
-            <div class="market-card-options two-way">
-              <button class="market-option-btn odd-btn" data-market="ou65" data-outcome="over">
-                <span class="option-name">OVER 6.5</span>
-                <span class="option-value" id="ou65-over">2.10</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="ou65" data-outcome="under">
-                <span class="option-name">UNDER 6.5</span>
-                <span class="option-value" id="ou65-under">1.66</span>
-              </button>
-            </div>
+        <!-- Market 4: Total Goals O/U 6.5 -->
+        <div class="market-card" data-category="goals">
+          <h3 class="market-card-title">TOTAL GOALS (O/U 6.5)</h3>
+          <div class="market-card-options two-way">
+            <button class="market-option-btn odd-btn" data-market="ou65" data-outcome="over">
+              <span class="option-name">OVER 6.5</span>
+              <span class="option-value" id="ou65-over">2.10</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="ou65" data-outcome="under">
+              <span class="option-name">UNDER 6.5</span>
+              <span class="option-value" id="ou65-under">1.66</span>
+            </button>
           </div>
+        </div>
 
-          <!-- Market 5: 7th Goal -->
-          <div class="market-card" data-category="goals">
-            <h3 class="market-card-title">7TH GOAL</h3>
-            <div class="market-card-options three-way">
-              <button class="market-option-btn odd-btn" data-market="7g" data-outcome="home">
-                <span class="option-name">HOME</span>
-                <span class="option-value" id="7g-home">3.50</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="7g" data-outcome="none">
-                <span class="option-name">NO GOAL</span>
-                <span class="option-value" id="7g-none">1.66</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="7g" data-outcome="away">
-                <span class="option-name">AWAY</span>
-                <span class="option-value" id="7g-away">4.50</span>
-              </button>
-            </div>
+        <!-- Market 5: 7th Goal -->
+        <div class="market-card" data-category="goals">
+          <h3 class="market-card-title">7TH GOAL</h3>
+          <div class="market-card-options three-way">
+            <button class="market-option-btn odd-btn" data-market="7g" data-outcome="home">
+              <span class="option-name">HOME</span>
+              <span class="option-value" id="7g-home">3.50</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="7g" data-outcome="none">
+              <span class="option-name">NO GOAL</span>
+              <span class="option-value" id="7g-none">1.66</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="7g" data-outcome="away">
+              <span class="option-name">AWAY</span>
+              <span class="option-value" id="7g-away">4.50</span>
+            </button>
           </div>
+        </div>
 
-          <!-- Market 6: Alternative Match Goals O/U 7.5 -->
-          <div class="market-card" data-category="goals">
-            <h3 class="market-card-title">ALTERNATIVE MATCH GOALS (O/U 7.5)</h3>
-            <div class="market-card-options two-way">
-              <button class="market-option-btn odd-btn" data-market="ou75" data-outcome="over">
-                <span class="option-name">OVER 7.5</span>
-                <span class="option-value" id="ou75-over">6.50</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="ou75" data-outcome="under">
-                <span class="option-name">UNDER 7.5</span>
-                <span class="option-value" id="ou75-under">1.10</span>
-              </button>
-            </div>
+        <!-- Market 6: Alternative Match Goals O/U 7.5 -->
+        <div class="market-card" data-category="goals">
+          <h3 class="market-card-title">ALTERNATIVE MATCH GOALS (O/U 7.5)</h3>
+          <div class="market-card-options two-way">
+            <button class="market-option-btn odd-btn" data-market="ou75" data-outcome="over">
+              <span class="option-name">OVER 7.5</span>
+              <span class="option-value" id="ou75-over">6.50</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="ou75" data-outcome="under">
+              <span class="option-name">UNDER 7.5</span>
+              <span class="option-value" id="ou75-under">1.10</span>
+            </button>
           </div>
+        </div>
 
-          <!-- Market 7: Asian Handicap -->
-          <div class="market-card" data-category="popular">
-            <h3 class="market-card-title">ASIAN HANDICAP (-2.5)</h3>
-            <div class="market-card-options two-way">
-              <button class="market-option-btn odd-btn" data-market="ah" data-outcome="home">
-                <span class="option-name">HOME -2.5</span>
-                <span class="option-value" id="ah-home">1.85</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="ah" data-outcome="away">
-                <span class="option-name">AWAY +2.5</span>
-                <span class="option-value" id="ah-away">1.95</span>
-              </button>
-            </div>
+        <!-- Market 7: Asian Handicap -->
+        <div class="market-card" data-category="popular">
+          <h3 class="market-card-title">ASIAN HANDICAP (-2.5)</h3>
+          <div class="market-card-options two-way">
+            <button class="market-option-btn odd-btn" data-market="ah" data-outcome="home">
+              <span class="option-name">HOME -2.5</span>
+              <span class="option-value" id="ah-home">1.85</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="ah" data-outcome="away">
+              <span class="option-name">AWAY +2.5</span>
+              <span class="option-value" id="ah-away">1.95</span>
+            </button>
           </div>
+        </div>
 
-          <!-- Market 8: Half Time Result -->
-          <div class="market-card" data-category="halftime">
-            <h3 class="market-card-title">HALF TIME RESULT</h3>
-            <div class="market-card-options three-way">
-              <button class="market-option-btn odd-btn" data-market="ht" data-outcome="1">
-                <span class="option-name">1</span>
-                <span class="option-value" id="ht-1">1.80</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="ht" data-outcome="X">
-                <span class="option-name">X</span>
-                <span class="option-value" id="ht-x">4.20</span>
-              </button>
-              <button class="market-option-btn odd-btn" data-market="ht" data-outcome="2">
-                <span class="option-name">2</span>
-                <span class="option-value" id="ht-2">12.00</span>
-              </button>
-            </div>
+        <!-- Market 8: Half Time Result -->
+        <div class="market-card" data-category="halftime">
+          <h3 class="market-card-title">HALF TIME RESULT</h3>
+          <div class="market-card-options three-way">
+            <button class="market-option-btn odd-btn" data-market="ht" data-outcome="1">
+              <span class="option-name">1</span>
+              <span class="option-value" id="ht-1">1.80</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="ht" data-outcome="X">
+              <span class="option-name">X</span>
+              <span class="option-value" id="ht-x">4.20</span>
+            </button>
+            <button class="market-option-btn odd-btn" data-market="ht" data-outcome="2">
+              <span class="option-name">2</span>
+              <span class="option-value" id="ht-2">12.00</span>
+            </button>
           </div>
+        </div>
 
-        </div>  
-      </div> 
-    </section>
+      </div>
+    </div>
+  </section>
 
   </footer>
 

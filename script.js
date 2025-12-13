@@ -85,84 +85,80 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRecentWinners(); // ✅ Existing function - KEEP
   renderWeeklyWinners(); // ✅ New function - ADD
 });
-// ============================================
-// CASH OUT SYSTEM
-// ============================================
+// ==================== CASH OUT MODAL SYSTEM ====================
 
+let currentCashOutBetIndex = null;
+
+// Keep existing calculateCashOut - it's already correct!
 function calculateCashOut(bet) {
-  // Cash out offers 70-90% of potential win depending on time
   const timePassed = Date.now() - new Date(bet.timestamp).getTime();
   const minutesPassed = timePassed / 60000;
-
-  // Higher % if bet is winning, lower if it's been longer
-  let cashOutPercentage = 0.85; // Base 85%
-
-  // Reduce by 1% every 10 minutes (max -15%)
+  let cashOutPercentage = 0.85;
   cashOutPercentage -= Math.min(0.15, (minutesPassed / 10) * 0.01);
-
-  // Minimum 70%
   cashOutPercentage = Math.max(0.70, cashOutPercentage);
-
   const cashOutAmount = bet.potentialWin * cashOutPercentage;
   return parseFloat(cashOutAmount.toFixed(2));
 }
 
-function cashOutBet(betIndex) {
+function openCashOutModal(betIndex) {
+  currentCashOutBetIndex = betIndex;
   const bet = userBets[betIndex];
-  if (!bet || bet.status !== 'unsettled') return;
-
   const cashOutAmount = calculateCashOut(bet);
+  
+  document.getElementById('cashOutStake').textContent = `€${bet.stake.toFixed(2)}`;
+  document.getElementById('cashOutPotential').textContent = `€${bet.potentialWin.toFixed(2)}`;
+  document.getElementById('cashOutOffer').textContent = `€${cashOutAmount.toFixed(2)}`;
+  
+  document.getElementById('cashOutModal').classList.add('show');
+}
 
-  // Confirm cash out
-  if (!confirm(`Cash out for ${cashOutAmount.toFixed(2)} лв?\n\nYou staked ${bet.stake.toFixed(2)} лв\nPotential win: ${bet.potentialWin.toFixed(2)} лв`)) {
-    return;
-  }
+function closeCashOutModal() {
+  document.getElementById('cashOutModal').classList.remove('show');
+  currentCashOutBetIndex = null;
+}
 
-  // Calculate profit/loss
-  const profit = cashOutAmount - bet.stake;
-
-  // Update balance
+function confirmCashOut() {
+  if (currentCashOutBetIndex === null) return;
+  
+  const bet = userBets[currentCashOutBetIndex];
+  const cashOutAmount = calculateCashOut(bet);
   const currentBalance = getWallet();
   setWallet(currentBalance + cashOutAmount);
-
-  // Update bet status
+  const profit = cashOutAmount - bet.stake;
+  
   bet.status = 'cashed-out';
   bet.cashOutAmount = cashOutAmount;
   bet.cashOutTime = new Date().toISOString();
-  bet.result = `Cashed Out: ${cashOutAmount.toFixed(2)} лв`;
-
-  // Update stats
+  bet.result = `Cashed Out: ${cashOutAmount.toFixed(2)} € (${profit >= 0 ? '+' : ''}${profit.toFixed(2)} € profit)`;
+  
+  localStorage.setItem('userBets', JSON.stringify(userBets));
+  
   userStats.totalBets++;
   userStats.totalProfit += profit;
-  userStats.weeklyProfit += profit;
-  updateMyBetsBadge();
-
-
   if (profit > 0) {
     userStats.totalWins++;
     userStats.currentStreak++;
     userStats.bestStreak = Math.max(userStats.bestStreak, userStats.currentStreak);
-
-    if (profit > userStats.biggestWin) {
-      userStats.biggestWin = profit;
-    }
-
-    showWinNotification(cashOutAmount, profit);
+    if (profit > userStats.biggestWin) userStats.biggestWin = profit;
   } else {
     userStats.totalLosses++;
     userStats.currentStreak = 0;
   }
-
-  // Save everything
-  localStorage.setItem('userBets', JSON.stringify(userBets));
+  
   saveStats();
-  updateLeaderboard(profit);
-
-  // Update UI
+  closeCashOutModal();
+  showValidationPopup(`✅ Cashed out for ${cashOutAmount.toFixed(2)} €!`, true);
   renderMyBets();
-  renderStatistics();
+  updateMyBetsBadge();
+}
 
-  toast(`💰 Cashed out for ${cashOutAmount.toFixed(2)} лв`);
+function attachCashOutListeners() {
+  document.querySelectorAll('.cash-out-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const betIndex = parseInt(btn.dataset.betIndex);
+      openCashOutModal(betIndex);
+    });
+  });
 }
 
 // Constants for Settings (moved from later in file to prevent ReferenceError)
@@ -246,9 +242,9 @@ function updateProfileDisplay() {
   // Update all profile elements
   if (fullnameDisplay) fullnameDisplay.textContent = displayName;
   if (usernameDisplay) usernameDisplay.textContent = `@${currentUser.username}`;
-  if (userBalance) userBalance.textContent = `${currentUser.balance.toFixed(2)} лв`;
-  if (withdrawable) withdrawable.textContent = `${currentUser.withdrawable.toFixed(2)} лв`;
-  if (credits) credits.textContent = `${currentUser.credits.toFixed(2)} лв`;
+  if (userBalance) userBalance.textContent = `${currentUser.balance.toFixed(2)} €`;
+  if (withdrawable) withdrawable.textContent = `${currentUser.withdrawable.toFixed(2)} €`;
+  if (credits) credits.textContent = `${currentUser.credits.toFixed(2)} €`;
 }
 
 // Navigation links functionality
@@ -499,87 +495,222 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       // Allow signup to proceed
       // Possibly call updateUIAfterAuth(true) here or redirect
+    
+      // ✅ ADD CASH OUT MODAL LISTENERS
+  const confirmCashOutBtn = document.getElementById('confirmCashOutBtn');
+  if (confirmCashOutBtn) {
+    confirmCashOutBtn.addEventListener('click', confirmCashOut);
+  }
+
+  const cashOutModal = document.getElementById('cashOutModal');
+  if (cashOutModal) {
+    cashOutModal.addEventListener('click', (e) => {
+      if (e.target === cashOutModal) {
+        closeCashOutModal();
+      }
+    });
+  }
+
     });
   }
 
   // =========================
-  // Remember email support
-  const remembered = localStorage.getItem('rememberEmail') || '';
-  const loginEmail = $$('#loginEmail'); const suEmail = $$('#suEmail');
-  if (remembered) {
-    if (loginEmail) loginEmail.value = remembered;
-    if (suEmail) suEmail.value = remembered;
+  // Remember email support - LOGIN ONLY
+const remembered = localStorage.getItem('rememberEmail') || '';
+const loginEmail = $$('#loginEmail');
+
+if (remembered && loginEmail) {
+  loginEmail.value = remembered;
+}
+
+  // ============================================
+// LOGIN ATTEMPTS TRACKER
+// ============================================
+
+let loginAttempts = parseInt(localStorage.getItem('loginAttempts')) || 0;
+let lockoutTime = parseInt(localStorage.getItem('lockoutTime')) || 0;
+
+// Check if account is locked
+function isAccountLocked() {
+  const now = Date.now();
+  if (lockoutTime > now) {
+    const remainingMinutes = Math.ceil((lockoutTime - now) / 60000);
+    return { locked: true, minutes: remainingMinutes };
   }
+  // Reset if lockout expired
+  if (lockoutTime > 0 && now > lockoutTime) {
+    loginAttempts = 0;
+    lockoutTime = 0;
+    localStorage.setItem('loginAttempts', '0');
+    localStorage.removeItem('lockoutTime');
+  }
+  return { locked: false };
+}
 
-  // LOGIN with password validation
-  const loginFormEl = document.getElementById("loginForm");
-  if (loginFormEl) {
-    loginFormEl.addEventListener("submit", (e) => {
-      e.preventDefault();
+// Reset login attempts on successful login
+function resetLoginAttempts() {
+  loginAttempts = 0;
+  lockoutTime = 0;
+  localStorage.setItem('loginAttempts', '0');
+  localStorage.removeItem('lockoutTime');
+}
 
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
+// Increment failed attempts
+function recordFailedAttempt() {
+  loginAttempts++;
+  localStorage.setItem('loginAttempts', loginAttempts.toString());
+  
+  const remainingAttempts = 3 - loginAttempts;
+  
+  if (loginAttempts >= 3) {
+    // Lock account for 15 minutes
+    lockoutTime = Date.now() + (15 * 60 * 1000); // 15 minutes
+    localStorage.setItem('lockoutTime', lockoutTime.toString());
+    
+    showValidationPopup('Too many failed attempts! Account locked for 15 minutes. 🔒', false);
+    
+    // Disable login button
+    const loginBtn = document.querySelector('#loginForm button[type="submit"]');
+    if (loginBtn) {
+      loginBtn.disabled = true;
+      loginBtn.textContent = '🔒 Locked (15 min)';
+      loginBtn.style.opacity = '0.5';
+      loginBtn.style.cursor = 'not-allowed';
+    }
+    
+    return true; // Account locked
+  } else {
+    showValidationPopup(`Invalid email or password. ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining. ⚠️`, false);
+    return false; // Not locked yet
+  }
+}
 
-      // ✅ NEW CODE - Includes balance
-      const hardcodedAccounts = [
-        {
-          email: "demo@example.com",
-          password: "Demo123!",
-          firstName: "John",
-          lastName: "Doe",
-          gender: "male",
-          username: "demo",
-          balance: 100.00,
-          withdrawable: 0.00,
-          credits: 100.00
-        },
-        {
-          email: "test@example.com",
-          password: "Test123!",
-          firstName: "Jane",
-          lastName: "Smith",
-          gender: "female",
-          username: "test",
-          balance: 100.00,
-          withdrawable: 0.00,
-          credits: 100.00
-        }
-      ];
+// LOGIN with password validation and attempt tracking
+const loginFormEl = document.getElementById("loginForm");
+if (loginFormEl) {
+  loginFormEl.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-      // ✅ GET SAVED ACCOUNTS FROM SIGNUP
-      const savedAccounts = JSON.parse(localStorage.getItem('demoAccounts')) || [];
+    // Check if account is locked
+    const lockStatus = isAccountLocked();
+    if (lockStatus.locked) {
+      showValidationPopup(`Account locked! Try again in ${lockStatus.minutes} minute${lockStatus.minutes !== 1 ? 's' : ''}. 🔒`, false);
+      return;
+    }
 
-      // ✅ COMBINE BOTH ACCOUNT LISTS
-      const allAccounts = [...hardcodedAccounts, ...savedAccounts];
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
 
-      // Check credentials
-      const account = allAccounts.find(acc => acc.email === email && acc.password === password);
-
-      // ✅ NEW CODE - Loads saved balance
-      if (account) {
-        const userData = {
-          username: account.username || email.split('@')[0],
-          fullName: `${account.firstName} ${account.lastName}`,
-          firstName: account.firstName,
-          lastName: account.lastName,
-          gender: account.gender,
-          email: email,
-          balance: account.balance || 0.00,           // ✅ LOADS SAVED BALANCE
-          withdrawable: account.withdrawable || 0.00, // ✅ LOADS SAVED BALANCE
-          credits: account.credits || 0.00            // ✅ LOADS SAVED BALANCE
-        };
-        localStorage.setItem("currentUser", JSON.stringify(userData));
-        localStorage.setItem('isLoggedIn', 'true');
-        document.body.classList.add('user-logged-in');
-
-        updateUIAfterAuth(true);
-        document.getElementById("loginModal")?.classList.remove("open");
-        showAuthMessage(`Welcome back, ${account.firstName}!`, 2000);
-      } else {
-        showAuthMessage("Invalid email or password. Try demo@example.com / Demo123!", 3000);
+    // ✅ HARDCODED DEMO ACCOUNTS
+    const hardcodedAccounts = [
+      {
+        email: "demo@example.com",
+        password: "Demo123!",
+        firstName: "John",
+        lastName: "Doe",
+        gender: "male",
+        username: "demo",
+        balance: 100.00,
+        withdrawable: 0.00,
+        credits: 100.00
+      },
+      {
+        email: "test@example.com",
+        password: "Test123!",
+        firstName: "Jane",
+        lastName: "Smith",
+        gender: "female",
+        username: "test",
+        balance: 100.00,
+        withdrawable: 0.00,
+        credits: 100.00
       }
-    });
+    ];
+
+    // ✅ GET SAVED ACCOUNTS FROM SIGNUP
+    const savedAccounts = JSON.parse(localStorage.getItem('demoAccounts')) || [];
+
+    // ✅ COMBINE BOTH ACCOUNT LISTS
+    const allAccounts = [...hardcodedAccounts, ...savedAccounts];
+
+    // Check credentials
+    const account = allAccounts.find(acc => acc.email === email && acc.password === password);
+
+    if (account) {
+      // ✅ SUCCESSFUL LOGIN
+      resetLoginAttempts(); // Clear failed attempts
+      
+      const userData = {
+        username: account.username || email.split('@')[0],
+        fullName: `${account.firstName} ${account.lastName}`,
+        firstName: account.firstName,
+        lastName: account.lastName,
+        gender: account.gender,
+        email: email,
+        balance: account.balance || 0.00,
+        withdrawable: account.withdrawable || 0.00,
+        credits: account.credits || 0.00
+      };
+      
+      localStorage.setItem("currentUser", JSON.stringify(userData));
+      localStorage.setItem('isLoggedIn', 'true');
+      document.body.classList.add('user-logged-in');
+
+      // Save email if "Remember Me" is checked
+      const rememberCheckbox = document.getElementById('loginRemember');
+      if (rememberCheckbox && rememberCheckbox.checked) {
+        localStorage.setItem('rememberEmail', email);
+      } else {
+        localStorage.removeItem('rememberEmail');
+      }
+
+      updateUIAfterAuth(true);
+      document.getElementById("loginModal")?.classList.remove("open");
+      
+      showValidationPopup(`Welcome back, ${account.firstName}! 🎉`, true); // Success popup
+      
+    } else {
+      // ❌ FAILED LOGIN
+      const isLocked = recordFailedAttempt();
+      
+      // Shake the form
+      const loginModal = document.getElementById("loginModal");
+      if (loginModal) {
+        loginModal.style.animation = 'shake 0.5s ease';
+        setTimeout(() => {
+          loginModal.style.animation = '';
+        }, 500);
+      }
+    }
+  });
+}
+
+// ============================================
+// RESET LOGIN BUTTON ON MODAL OPEN
+// ============================================
+document.getElementById('openLogin')?.addEventListener('click', () => {
+  const loginBtn = document.querySelector('#loginForm button[type="submit"]');
+  
+  // Check if still locked
+  const lockStatus = isAccountLocked();
+  
+  if (lockStatus.locked) {
+    if (loginBtn) {
+      loginBtn.disabled = true;
+      loginBtn.textContent = `🔒 Locked (${lockStatus.minutes} min)`;
+      loginBtn.style.opacity = '0.5';
+      loginBtn.style.cursor = 'not-allowed';
+    }
+  } else {
+    // Unlock button if lockout expired
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Log In';
+      loginBtn.style.opacity = '1';
+      loginBtn.style.cursor = 'pointer';
+    }
   }
+});
   const logoutBtn = document.getElementById("logoutBtn");
 
   if (logoutBtn) {
@@ -591,6 +722,226 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ============================================
+// FORM VALIDATION POPUP SYSTEM - SYNCED
+// ============================================
+
+const validationRules = {
+  firstName: {
+    validate: (value) => {
+      const namePattern = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,30}$/;
+      return namePattern.test(value);
+    },
+    message: 'First name must be 2-30 characters (letters, spaces, hyphens only)'
+  },
+  lastName: {
+    validate: (value) => {
+      const namePattern = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,30}$/;
+      return namePattern.test(value);
+    },
+    message: 'Last name must be 2-30 characters (letters, spaces, hyphens only)'
+  },
+  email: {
+    validate: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+    message: 'Please enter a valid email address'
+  },
+  username: {
+    validate: (value) => /^[a-zA-Z0-9]{3,20}$/.test(value),
+    message: 'Username must be 3-20 characters (letters and numbers only)'
+  },
+  password: {
+    validate: (value) => {
+      const hasMinLength = value.length >= 8;
+      const hasUpperCase = /[A-Z]/.test(value);
+      const hasLowerCase = /[a-z]/.test(value);
+      const hasNumber = /[0-9]/.test(value);
+      
+      if (!hasMinLength) return { valid: false, message: 'Password must be at least 8 characters' };
+      if (!hasUpperCase) return { valid: false, message: 'Password must contain uppercase letter' };
+      if (!hasLowerCase) return { valid: false, message: 'Password must contain lowercase letter' };
+      if (!hasNumber) return { valid: false, message: 'Password must contain number' };
+      
+      return { valid: true };
+    }
+  },
+  dateOfBirth: {
+    validate: (value) => {
+      if (!value) return false;
+      
+      const birthDate = new Date(value);
+      const today = new Date();
+      
+      // Check if date is valid
+      if (isNaN(birthDate.getTime())) {
+        return { valid: false, message: 'Please enter a valid date' };
+      }
+      
+      // Check if date is in the future
+      if (birthDate > today) {
+        return { valid: false, message: 'Date of birth cannot be in the future' };
+      }
+      
+      // Calculate age
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      // Check minimum age (18)
+      if (age < 18) {
+        return { valid: false, message: 'You must be 18 or older to register' };
+      }
+      
+      // Check maximum age (120 years - realistic limit)
+      if (age > 120) {
+        return { valid: false, message: 'Please enter a valid date of birth' };
+      }
+      
+      return { valid: true };
+    }
+  },
+  country: {
+    validate: (value) => value !== '',
+    message: 'Please select your country'
+  },
+  gender: {
+    validate: (value) => value !== '',
+    message: 'Please select your gender'
+  }
+};
+
+function showValidationPopup(message, isSuccess = false) {
+  const popup = document.getElementById('validationPopup');
+  const messageEl = document.getElementById('validationMessage');
+  const iconEl = popup?.querySelector('.validation-icon');
+  
+  if (!popup || !messageEl) return;
+  
+  messageEl.textContent = message;
+  
+  if (isSuccess) {
+    popup.classList.add('success');
+    if (iconEl) iconEl.textContent = '✅';
+  } else {
+    popup.classList.remove('success');
+    if (iconEl) iconEl.textContent = '⚠️';
+  }
+  
+  popup.classList.remove('hidden');
+  popup.style.animation = 'slideInRight 0.3s ease, shake 0.5s ease 0.3s';
+  
+  setTimeout(() => {
+    popup.classList.add('hidden');
+  }, 4000);
+}
+
+// Attach validation to form fields
+function attachFormValidation() {
+  // First Name
+  const firstNameInput = document.getElementById('suFirst');
+  if (firstNameInput) {
+    firstNameInput.addEventListener('blur', () => {
+      const value = firstNameInput.value.trim();
+      if (value && !validationRules.firstName.validate(value)) {
+        showValidationPopup(validationRules.firstName.message);
+      }
+    });
+  }
+
+  // Last Name
+  const lastNameInput = document.getElementById('suLast');
+  if (lastNameInput) {
+    lastNameInput.addEventListener('blur', () => {
+      const value = lastNameInput.value.trim();
+      if (value && !validationRules.lastName.validate(value)) {
+        showValidationPopup(validationRules.lastName.message);
+      }
+    });
+  }
+
+  // Email
+  const emailInput = document.getElementById('suEmail');
+  if (emailInput) {
+    emailInput.addEventListener('blur', () => {
+      const value = emailInput.value.trim();
+      if (value && !validationRules.email.validate(value)) {
+        showValidationPopup(validationRules.email.message);
+      }
+    });
+  }
+
+  // Username
+  const usernameInput = document.getElementById('suUsername');
+  if (usernameInput) {
+    usernameInput.addEventListener('blur', () => {
+      const value = usernameInput.value.trim();
+      if (value && !validationRules.username.validate(value)) {
+        showValidationPopup(validationRules.username.message);
+      }
+    });
+  }
+
+  // Password
+  const passwordInput = document.getElementById('suPassword');
+  if (passwordInput) {
+    passwordInput.addEventListener('blur', () => {
+      const value = passwordInput.value;
+      if (value) {
+        const result = validationRules.password.validate(value);
+        if (typeof result === 'object' && !result.valid) {
+          showValidationPopup(result.message);
+        }
+      }
+    });
+  }
+
+  // Date of Birth
+const dobInput = document.getElementById('suDob');
+if (dobInput) {
+  dobInput.addEventListener('blur', () => {
+    const value = dobInput.value;
+    if (value) {
+      const result = validationRules.dateOfBirth.validate(value);
+      
+      // Handle object response (like password validation)
+      if (typeof result === 'object' && !result.valid) {
+        showValidationPopup(result.message);
+      }
+    }
+  });
+}
+
+  // Country
+  const countryInput = document.getElementById('suCountry');
+  if (countryInput) {
+    countryInput.addEventListener('blur', () => {
+      const value = countryInput.value;
+      if (!validationRules.country.validate(value)) {
+        showValidationPopup(validationRules.country.message);
+      }
+    });
+  }
+
+  // Gender
+  const genderInput = document.getElementById('suGender');
+  if (genderInput) {
+    genderInput.addEventListener('blur', () => {
+      const value = genderInput.value;
+      if (!validationRules.gender.validate(value)) {
+        showValidationPopup(validationRules.gender.message);
+      }
+    });
+  }
+}
+
+// Initialize validation when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', attachFormValidation);
+} else {
+  attachFormValidation();
+}
 
 // =========================
 // Utilities
@@ -772,7 +1123,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f1',
     sport: 'football',
     league: 'Spain - LaLiga',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Valencia CF', 'Real Oviedo'],
     score: [1, 0],
     time: '78:11',
@@ -782,7 +1133,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f2',
     sport: 'football',
     league: 'Spain - LaLiga',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Barcelona', 'Real Madrid'],
     score: [2, 2],
     time: '82:34',
@@ -792,7 +1143,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f3',
     sport: 'football',
     league: 'Spain - LaLiga',
-    leagueIcon: ``,
+    leagueIcon: '⚽',
     teams: ['Atletico Madrid', 'Sevilla'],
     score: [0, 1],
     time: '56:22',
@@ -806,7 +1157,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f4',
     sport: 'football',
     league: 'England - Premier League',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Arsenal', 'Chelsea'],
     score: [2, 1],
     time: '65:34',
@@ -816,7 +1167,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f5',
     sport: 'football',
     league: 'England - Premier League',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Liverpool', 'Manchester City'],
     score: [1, 1],
     time: '71:45',
@@ -826,7 +1177,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f6',
     sport: 'football',
     league: 'England - Premier League',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Manchester United', 'Tottenham'],
     score: [0, 0],
     time: '38:12',
@@ -839,7 +1190,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f7',
     sport: 'football',
     league: 'Italy - Serie A',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['AC Milan', 'Inter Milan'],
     score: [0, 0],
     time: '23:45',
@@ -849,7 +1200,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f8',
     sport: 'football',
     league: 'Italy - Serie A',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Juventus', 'Napoli'],
     score: [3, 1],
     time: '88:02',
@@ -859,7 +1210,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f9',
     sport: 'football',
     league: 'Italy - Serie A',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['AS Roma', 'Lazio'],
     score: [1, 2],
     time: '67:18',
@@ -873,7 +1224,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f10',
     sport: 'football',
     league: 'Germany - Bundesliga',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Bayern Munich', 'Borussia Dortmund'],
     score: [2, 0],
     time: '54:30',
@@ -883,7 +1234,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f11',
     sport: 'football',
     league: 'Germany - Bundesliga',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['RB Leipzig', 'Bayer Leverkusen'],
     score: [1, 1],
     time: '79:55',
@@ -893,7 +1244,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f12',
     sport: 'football',
     league: 'Germany - Bundesliga',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Borussia M\'gladbach', 'Eintracht Frankfurt'],
     score: [0, 1],
     time: '42:17',
@@ -907,7 +1258,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f13',
     sport: 'football',
     league: 'France - Ligue 1',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Paris Saint-Germain', 'Marseille'],
     score: [3, 0],
     time: '61:28',
@@ -917,7 +1268,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f14',
     sport: 'football',
     league: 'France - Ligue 1',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Lyon', 'Monaco'],
     score: [1, 2],
     time: '73:40',
@@ -927,7 +1278,7 @@ const LIVE_MATCHES_DATA = [
     id: 'live-f15',
     sport: 'football',
     league: 'France - Ligue 1',
-    leagueIcon: '',
+    leagueIcon: '⚽',
     teams: ['Lille', 'Nice'],
     score: [0, 0],
     time: '19:05',
@@ -2218,7 +2569,7 @@ function setWallet(v) {
 
 function updateWalletUI() {
   const el = document.getElementById('walletBalance');
-  if (el) el.textContent = '$' + fmtSafe(wallet);
+  if (el) el.textContent = '€' + fmtSafe(wallet);
 }
 function setMode(mode) {
   betMode = mode === 'singles' ? 'singles' : 'combo';
@@ -3323,121 +3674,170 @@ function validateAge(dateStr) {
   return age >= 18;
 }
 
-// Step 1 validation
+// ============================================
+// ENHANCED STEP VALIDATION WITH POPUPS
+// ============================================
+
+// Step 1 validation with popup and focus
 function validateStep1() {
-  const firstName = document.getElementById('suFirst');
-  const lastName = document.getElementById('suLast');
-  const dob = document.getElementById('suDob');
-  const country = document.getElementById('suCountry');
+  const fields = [
+    { id: 'suFirst', rule: 'firstName', label: 'First Name' },
+    { id: 'suLast', rule: 'lastName', label: 'Last Name' },
+    { id: 'suDob', rule: 'dateOfBirth', label: 'Date of Birth' },
+    { id: 'suGender', rule: 'gender', label: 'Gender' },
+    { id: 'suCountry', rule: 'country', label: 'Country' }
+  ];
 
-  let valid = true;
+  // Check each field in order
+  for (const field of fields) {
+    const input = document.getElementById(field.id);
+    if (!input) continue;
 
-  // In validateStep1() function, ADD this before the return statement:
+    const value = input.value.trim();
+    const rule = validationRules[field.rule];
 
-  // Validate gender
-  const gender = document.getElementById('suGender');
-  const genderError = document.getElementById('genderError');
-  if (!gender.value) {
-    showError(genderError, 'Please select your gender');
-    gender.classList.add('error');
-    valid = false;
-  } else {
-    hideError(genderError);
-    gender.classList.remove('error');
-  }
-  // Validate first name
-  if (!validateField(firstName, patterns.name, 'Please enter a valid first name')) {
-    valid = false;
-  }
+    // Check if field is empty
+    if (!value || value === '') {
+      showValidationPopup(`${field.label} is required`);
+      focusAndScrollToField(input);
+      return false;
+    }
 
-  // Validate last name
-  if (!validateField(lastName, patterns.name, 'Please enter a valid last name')) {
-    valid = false;
-  }
+    // Validate field value
+    const result = rule.validate(value);
 
-  // Validate date of birth
-  const dobError = document.getElementById('dobError');
-  if (!dob.value) {
-    showError(dobError, 'Date of birth is required');
-    dob.classList.add('error');
-    valid = false;
-  } else if (!validateAge(dob.value)) {
-    showError(dobError, 'You must be 18 or older to register');
-    dob.classList.add('error');
-    valid = false;
-  } else {
-    hideError(dobError);
-    dob.classList.remove('error');
+    // Handle object response (date of birth, password)
+    if (typeof result === 'object' && !result.valid) {
+      showValidationPopup(result.message);
+      focusAndScrollToField(input);
+      return false;
+    }
+
+    // Handle boolean response
+    if (typeof result === 'boolean' && !result) {
+      showValidationPopup(rule.message || `Invalid ${field.label}`);
+      focusAndScrollToField(input);
+      return false;
+    }
   }
 
-  // Validate country
-  const countryError = document.getElementById('countryError');
-  if (!country.value) {
-    showError(countryError, 'Please select your country');
-    country.classList.add('error');
-    valid = false;
-  } else {
-    hideError(countryError);
-    country.classList.remove('error');
-  }
-
-  return valid;
+  return true;
 }
 
-// Step 2 validation
+// Step 2 validation with popup and focus
 function validateStep2() {
-  const email = document.getElementById('suEmail');
-  const username = document.getElementById('suUsername');
-  const password = document.getElementById('suPassword');
-  const confirm = document.getElementById('suConfirm');
+  const fields = [
+    { id: 'suEmail', rule: 'email', label: 'Email' },
+    { id: 'suUsername', rule: 'username', label: 'Username' },
+    { id: 'suPassword', rule: 'password', label: 'Password' },
+    { id: 'suConfirm', label: 'Confirm Password' }
+  ];
 
-  let valid = true;
+  // Check each field in order
+  for (const field of fields) {
+    const input = document.getElementById(field.id);
+    if (!input) continue;
 
-  // Validate email
-  if (!validateField(email, patterns.email, 'Please enter a valid email address')) {
-    valid = false;
+    const value = input.value.trim();
+
+    // Special handling for password confirmation
+    if (field.id === 'suConfirm') {
+      const password = document.getElementById('suPassword').value;
+      
+      if (!value) {
+        showValidationPopup('Please confirm your password');
+        focusAndScrollToField(input);
+        return false;
+      }
+      
+      if (value !== password) {
+        showValidationPopup('Passwords do not match');
+        focusAndScrollToField(input);
+        return false;
+      }
+      
+      continue;
+    }
+
+    // Check if field is empty
+    if (!value) {
+      showValidationPopup(`${field.label} is required`);
+      focusAndScrollToField(input);
+      return false;
+    }
+
+    // Validate field value
+    const rule = validationRules[field.rule];
+    const result = rule.validate(value);
+
+    // Handle object response (password)
+    if (typeof result === 'object' && !result.valid) {
+      showValidationPopup(result.message);
+      focusAndScrollToField(input);
+      return false;
+    }
+
+    // Handle boolean response
+    if (typeof result === 'boolean' && !result) {
+      showValidationPopup(rule.message || `Invalid ${field.label}`);
+      focusAndScrollToField(input);
+      return false;
+    }
   }
 
-  // Validate username
-  if (!validateField(username, patterns.username, 'Username must be 3-20 characters, letters and numbers only')) {
-    valid = false;
-  }
-
-  // Validate password
-  if (!validateField(password, patterns.password, 'Password must be at least 8 characters with uppercase, lowercase and numbers')) {
-    valid = false;
-  }
-
-  // Validate password confirmation
-  const confirmError = document.getElementById('confirmError');
-  if (confirm.value !== password.value) {
-    showError(confirmError, 'Passwords do not match');
-    confirm.classList.add('error');
-    valid = false;
-  } else if (!confirm.value) {
-    showError(confirmError, 'Please confirm your password');
-    confirm.classList.add('error');
-    valid = false;
-  } else {
-    hideError(confirmError);
-    confirm.classList.remove('error');
-  }
-
-  return valid;
+  return true;
 }
 
-// Step 3 validation
+// Step 3 validation with popup and focus
 function validateStep3() {
-  const terms = document.getElementById('suTerms');
-  const termsError = document.getElementById('termsError');
-
-  if (!terms.checked) {
-    showError(termsError, 'You must accept the Terms & Conditions');
+  const termsCheckbox = document.getElementById('suTerms');
+  
+  if (!termsCheckbox) return false;
+  
+  if (!termsCheckbox.checked) {
+    showValidationPopup('You must accept the Terms & Conditions to continue');
+    
+    // Scroll to checkbox and add visual highlight
+    termsCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Add highlight effect
+    const label = termsCheckbox.closest('label');
+    if (label) {
+      label.style.animation = 'shake 0.5s ease';
+      setTimeout(() => {
+        label.style.animation = '';
+      }, 500);
+    }
+    
     return false;
   }
 
-  hideError(termsError);
   return true;
+}
+
+// Helper function to focus and scroll to invalid field
+function focusAndScrollToField(field) {
+  // Scroll to field
+  field.scrollIntoView({ 
+    behavior: 'smooth', 
+    block: 'center' 
+  });
+  
+  // Focus field after scroll
+  setTimeout(() => {
+    field.focus();
+    
+    // Add visual highlight
+    field.style.transition = 'all 0.3s ease';
+    field.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.3)';
+    field.style.borderColor = '#ef4444';
+    
+    // Remove highlight after 2 seconds
+    setTimeout(() => {
+      field.style.boxShadow = '';
+      field.style.borderColor = '';
+    }, 2000);
+  }, 300);
 }
 
 // Password strength checker
@@ -4029,7 +4429,7 @@ function updatePotentialWin() {
   // Update potential winnings amount
   const potentialWinEl = document.getElementById('potentialWin');
   if (potentialWinEl) {
-    potentialWinEl.textContent = potential.toFixed(2) + ' лв.';
+    potentialWinEl.textContent = potential.toFixed(2) + ' €.';
   }
 
   // ✅ CALCULATE RISK LEVEL BASED ON MULTIPLIER
@@ -5409,20 +5809,53 @@ if (getPredictionBtn) {
 // Render My Bets - FIXED VERSION
 function renderMyBets() {
   const live = userBets.filter(b => b.isLive && b.status === 'live');
+  const cashOut = userBets.filter(b => {
+    if (b.status !== 'unsettled' && b.status !== 'live') return false;
+    const timePassed = Date.now() - new Date(b.timestamp).getTime();
+    return timePassed < 5400000; // 90 minutes
+  });
   const unsettled = userBets.filter(b => b.status === 'unsettled' || (b.status === 'live' && !b.isLive));
   const settled = userBets.filter(b => b.status === 'settled' || b.status === 'cashed-out');
 
-  // ✅ LIVE NOW TAB
+  // CASH OUT TAB
+  document.getElementById('cashout-content').innerHTML = cashOut.length
+    ? cashOut.map(bet => {
+      const actualIndex = userBets.indexOf(bet);
+      const cashOutAmount = calculateCashOut(bet);
+      return `
+        <div class="bet-card">
+          <div class="bet-header">
+            <div class="bet-type">${bet.isLive ? '<span class="live-pulse">●</span> LIVE ' : ''}${bet.type.toUpperCase()}</div>
+            <span class="eligibility-badge">✓ Eligible</span>
+          </div>
+          ${bet.selections.map(s => `
+            <div class="bet-match">
+              <div class="match-league">${s.league || 'Match'}</div>
+              <div class="match-name">${s.match}</div>
+              <div class="match-selection">${s.market} @ ${s.odds}</div>
+            </div>
+          `).join('')}
+          <div class="bet-details">
+            <span>Stake: ${bet.stake.toFixed(2)} €</span>
+            <span>Potential: ${bet.potentialWin.toFixed(2)} €</span>
+          </div>
+          <button class="cash-out-btn" data-bet-index="${actualIndex}">
+            💰 Cash Out Now ${cashOutAmount.toFixed(2)} €
+          </button>
+        </div>
+      `;
+    }).join('')
+    : '<p class="empty-state">No bets available for cash out</p>';
+
+  // LIVE NOW TAB
   document.getElementById('live-content').innerHTML = live.length
     ? live.map(bet => {
       const actualIndex = userBets.indexOf(bet);
       return `
         <div class="bet-card live-bet-card">
           <div class="bet-header">
-            <div class="bet-type">
-              <span class="live-pulse">●</span> LIVE ${bet.type.toUpperCase()}
-            </div>
-            <button class="cancel-bet-btn" data-bet-index="${actualIndex}" title="Cancel Bet">×</button>
+            <div class="bet-type"><span class="live-pulse">●</span> LIVE ${bet.type.toUpperCase()}</div>
+            <button class="cancel-bet-btn" data-bet-index="${actualIndex}">×</button>
           </div>
           ${bet.selections.map(s => `
             <div class="bet-match">
@@ -5432,16 +5865,16 @@ function renderMyBets() {
             </div>
           `).join('')}
           <div class="bet-details">
-            <span>Stake: ${bet.stake.toFixed(2)} лв</span>
+            <span>Stake: ${bet.stake.toFixed(2)} €</span>
             <span>Odds: ${bet.totalOdds.toFixed(2)}</span>
-            <span class="potential-live">Potential: ${bet.potentialWin.toFixed(2)} лв</span>
+            <span class="potential-live">Potential: ${bet.potentialWin.toFixed(2)} €</span>
           </div>
         </div>
       `;
     }).join('')
     : '<p class="empty-state">No live bets</p>';
 
-  // ✅ UNSETTLED TAB
+  // UNSETTLED TAB
   document.getElementById('unsettled-content').innerHTML = unsettled.length
     ? unsettled.map(bet => {
       const actualIndex = userBets.indexOf(bet);
@@ -5449,33 +5882,35 @@ function renderMyBets() {
         <div class="bet-card">
           <div class="bet-header">
             <div class="bet-type">${bet.type.toUpperCase()}</div>
-            <button class="cancel-bet-btn" data-bet-index="${actualIndex}" title="Cancel Bet">×</button>
+            <button class="cancel-bet-btn" data-bet-index="${actualIndex}">×</button>
           </div>
           ${bet.selections.map(s => `<div class="bet-match">${s.match} - ${s.market} @ ${s.odds}</div>`).join('')}
           <div class="bet-details">
-            <span>Stake: ${bet.stake.toFixed(2)} лв</span>
+            <span>Stake: ${bet.stake.toFixed(2)} €</span>
             <span>Odds: ${bet.totalOdds.toFixed(2)}</span>
-            <span>Potential: ${bet.potentialWin.toFixed(2)} лв</span>
+            <span>Potential: ${bet.potentialWin.toFixed(2)} €</span>
           </div>
         </div>
       `;
     }).join('')
     : '<p class="empty-state">No unsettled bets</p>';
 
-  // ✅ SETTLED TAB
+  // SETTLED TAB
   document.getElementById('settled-content').innerHTML = settled.length
     ? settled.map(bet => `
-        <div class="bet-card">
-          <div class="bet-type">${bet.type.toUpperCase()}</div>
+        <div class="bet-card ${bet.status === 'cashed-out' ? 'cashed-out-card' : ''}">
+          <div class="bet-type">${bet.type.toUpperCase()} ${bet.status === 'cashed-out' ? '- CASHED OUT' : ''}</div>
           ${bet.selections.map(s => `<div class="bet-match">${s.match} - ${s.market} @ ${s.odds}</div>`).join('')}
           <div class="bet-details">
-            <span>Stake: ${bet.stake.toFixed(2)} лв</span>
+            <span>Stake: ${bet.stake.toFixed(2)} €</span>
             <span>Result: ${bet.result || 'Pending'}</span>
+            ${bet.cashOutAmount ? `<span style="color: #ffd34d;">Cashed Out: ${bet.cashOutAmount.toFixed(2)} €</span>` : ''}
           </div>
         </div>
       `).join('')
     : '<p class="empty-state">No settled bets</p>';
 
+  attachCashOutListeners();
   attachCancelListeners();
 }
 
@@ -6093,6 +6528,8 @@ function renderPrematchEvents(selectedDate = 'today', selectedSession = 'all') {
   });
 
   container.innerHTML = html || '<p style="text-align:center;color:#94a3b8;padding:40px;">No matches for this time</p>';
+
+  
 }
 
 function renderPrematchEventsBySport(sport, selectedDate, selectedSession) {
@@ -6280,7 +6717,7 @@ function showWinNotification(amount, profit) {
   const notification = document.createElement('div');
   notification.className = 'notification win';
 
-  const isBigWin = profit >= 100; // Big win if profit is 100+ лв
+  const isBigWin = profit >= 100;
 
   notification.innerHTML = `
     <button class="notification-close">×</button>
@@ -6289,8 +6726,8 @@ function showWinNotification(amount, profit) {
       <div class="notification-title">${isBigWin ? 'BIG WIN!' : 'You Won!'}</div>
     </div>
     <div class="notification-body">
-      <div class="notification-amount">+${amount.toFixed(2)} лв</div>
-      <div>Profit: <strong style="color: #10b981;">+${profit.toFixed(2)} лв</strong></div>
+      <div class="notification-amount">+${amount.toFixed(2)} €</div>
+      <div>Profit: <strong style="color: #10b981;">+${profit.toFixed(2)} €</strong></div>
     </div>
   `;
 
@@ -6329,7 +6766,7 @@ function showLossNotification(amount, loss) {
       <div class="notification-title">Bet Lost</div>
     </div>
     <div class="notification-body">
-      <div class="notification-amount">-${amount.toFixed(2)} лв</div>
+      <div class="notification-amount">-${amount.toFixed(2)} €</div>
       <div>Better luck next time!</div>
     </div>
   `;
@@ -6378,3 +6815,245 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ Bet slip UI force updated on load');
   }, 100);
 });
+
+// ============================================
+// NOTIFICATION SYSTEM
+// ============================================
+
+class NotificationSystem {
+  constructor() {
+    this.notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+    this.init();
+  }
+
+  init() {
+    this.renderNotifications();
+    this.updateBadge();
+    this.attachEventListeners();
+    this.startMatchChecks();
+  }
+
+  startMatchChecks() {
+    // Check every minute (60000ms)
+    setInterval(() => {
+      this.checkMatchesStartingSoon();
+    }, 60000);
+  
+    // Do first check immediately
+    this.checkMatchesStartingSoon();
+  }
+
+  checkMatchesStartingSoon() {
+    const now = new Date();
+    
+    // Check all prematch events
+    PREMATCH_EVENTS.forEach(match => {
+      const matchTime = this.parseMatchTime(match.date, match.time);
+      if (!matchTime) return;
+  
+      // Calculate difference in minutes
+      const diffMs = matchTime - now;
+      const diffMins = Math.floor(diffMs / 60000);
+  
+      // Alert exactly 15 minutes before
+      if (diffMins === 15) {
+        // Check if we already sent notification for this match
+        const alreadyNotified = this.notifications.some(
+          n => n.matchId === match.id && n.type === 'match-starting'
+        );
+  
+        if (!alreadyNotified) {
+          this.addNotification(
+            'match-starting',
+            '⚽ Match Starting Soon!',
+            `${match.teams[0]} vs ${match.teams[1]} starts in 15 minutes`,
+            match.id
+          );
+        }
+      }
+    });
+  }
+
+  parseMatchTime(date, time) {
+    try {
+      const today = new Date();
+      let matchDate;
+  
+      if (date === 'today') {
+        matchDate = new Date(today);
+      } else if (date === 'tomorrow') {
+        matchDate = new Date(today);
+        matchDate.setDate(today.getDate() + 1);
+      } else {
+        return null;
+      }
+  
+      // Parse time (e.g., "15:00")
+      const [hours, minutes] = time.split(':').map(Number);
+      matchDate.setHours(hours, minutes, 0, 0);
+  
+      return matchDate;
+    } catch (error) {
+      console.error('Error parsing match time:', error);
+      return null;
+    }
+  }
+
+  // Add new notification
+  addNotification(type, title, message, matchId = null) {
+    const notification = {
+      id: Date.now(),
+      type: type,
+      title: title,
+      message: message,
+      matchId: matchId,
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+
+    this.notifications.unshift(notification);
+    
+    if (this.notifications.length > 50) {
+      this.notifications = this.notifications.slice(0, 50);
+    }
+
+    this.save();
+    this.renderNotifications();
+    this.updateBadge();
+    
+    toast(title);
+  }
+
+  // Render notifications
+  renderNotifications() {
+    const listEl = document.getElementById('notificationList');
+    if (!listEl) return;
+
+    if (this.notifications.length === 0) {
+      listEl.innerHTML = '<p class="empty-notifications">No new notifications</p>';
+      return;
+    }
+
+    listEl.innerHTML = this.notifications.map(notif => {
+      const timeAgo = this.getTimeAgo(notif.timestamp);
+      const icon = this.getIcon(notif.type);
+
+      return `
+        <div class="notification-item ${!notif.read ? 'unread' : ''}" data-id="${notif.id}">
+          <div class="notification-icon ${notif.type}">
+            ${icon}
+          </div>
+          <div class="notification-title">${notif.title}</div>
+          <div class="notification-message">${notif.message}</div>
+          <div class="notification-time">${timeAgo}</div>
+        </div>
+      `;
+    }).join('');
+
+    document.querySelectorAll('.notification-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = parseInt(item.dataset.id);
+        this.markAsRead(id);
+      });
+    });
+  }
+
+  getIcon(type) {
+    const icons = {
+      'match-starting': '⚽',
+      'bet-won': '🎉',
+      'bet-lost': '😞',
+      'cashout': '💰',
+      'promo': '🎁'
+    };
+    return icons[type] || '🔔';
+  }
+
+  getTimeAgo(timestamp) {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now - then;
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  }
+
+  updateBadge() {
+    const badge = document.getElementById('notificationBadge');
+    if (!badge) return;
+
+    const unreadCount = this.notifications.filter(n => !n.read).length;
+
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+
+  markAsRead(id) {
+    const notif = this.notifications.find(n => n.id === id);
+    if (notif) {
+      notif.read = true;
+      this.save();
+      this.renderNotifications();
+      this.updateBadge();
+    }
+  }
+
+  clearAll() {
+    if (confirm('Clear all notifications?')) {
+      this.notifications = [];
+      this.save();
+      this.renderNotifications();
+      this.updateBadge();
+    }
+  }
+
+  save() {
+    localStorage.setItem('notifications', JSON.stringify(this.notifications));
+  }
+
+  attachEventListeners() {
+    const notifBtn = document.getElementById('notificationBtn');
+    const notifPanel = document.getElementById('notificationPanel');
+    const clearAllBtn = document.getElementById('clearAllNotifications');
+
+    notifBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifPanel?.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.notifications-wrapper')) {
+        notifPanel?.classList.add('hidden');
+      }
+    });
+
+    clearAllBtn?.addEventListener('click', () => {
+      this.clearAll();
+    });
+  }
+}
+
+// Initialize notification system
+let notificationSystem;
+
+document.addEventListener('DOMContentLoaded', () => {
+  notificationSystem = new NotificationSystem();
+});
+
+// Helper function to add notifications
+function notify(type, title, message, matchId = null) {
+  if (notificationSystem) {
+    notificationSystem.addNotification(type, title, message, matchId);
+  }
+}
